@@ -20,9 +20,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: npm
 
       - name: Instalar dependencias
-        run: npm install
+        run: npm ci
+        env:
+          HUSKY: 0
 
       - name: Ejecutar ESLint
         run: npm run lint
