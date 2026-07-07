@@ -4,7 +4,10 @@
   "private": true,
   "description": "Marketplace full-stack (React + Node.js + MySQL + Capacitor)",
   "type": "module",
-  "workspaces": ["client", "server"],
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
