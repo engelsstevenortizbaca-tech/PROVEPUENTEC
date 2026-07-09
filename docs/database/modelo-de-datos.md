@@ -18,8 +18,12 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 - Toda tabla tiene una PK sustituta (`surrogate key`) `id BIGINT UNSIGNED AUTO_INCREMENT`,
   salvo las tablas puente (relación N:M), que usan **PK compuesta**.
 - Columnas de auditoría estándar en la mayoría de tablas: `created_at`, `updated_at`.
-- **Soft delete** (`deleted_at`) **solo donde tiene sentido**: `usuarios`, `productos`,
-  `producto_variantes`, `pedidos`. El resto usa borrado físico. Catálogos usan `activo`.
+- **Soft delete** (`deleted_at`) **solo en**: `usuarios`, `productos`, `categorias`,
+  `direcciones`. El resto usa borrado físico. Catálogos usan `activo`.
+- **Modelo centrado en variante:** todo producto tiene **al menos una variante**
+  (los productos simples usan una variante por defecto). Por eso el **precio de
+  venta** y el **stock/inventario** se manejan **por variante**, y `variante_id`
+  nunca es NULL en `carrito_items`, `detalle_pedido`, `inventario` y `precio_historial`.
 - Los importes monetarios se guardan como `DECIMAL(12,2)`.
 - Los **estados y catálogos** se modelan como **tablas** (no ENUM), para permitir
   altas/bajas sin migraciones.
@@ -106,21 +110,21 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 
 ### `productos`
 - **Propósito:** publicaciones que un vendedor pone a la venta.
-- **Campos clave:** `titulo`, `slug`, `descripcion`, `precio` (base), `condicion`
-  (`nuevo|usado`), `estado` (`borrador|activo|pausado|vendido|eliminado`), `sku`, `deleted_at`.
+- **Campos clave:** `titulo`, `slug`, `descripcion`, `precio` (**referencia**; el de
+  venta vive en la variante), `condicion` (`nuevo|usado`),
+  `estado` (`borrador|activo|pausado|vendido|eliminado`), `sku`, `deleted_at`.
 - **PK:** `id`
 - **FK:** `vendedor_id → usuarios.id`, `subcategoria_id → subcategorias.id`,
   `marca_id → marcas.id` (nullable)
 - **Relaciones:** 1:N con `producto_imagenes`, `producto_variantes`, `favoritos`,
-  `comentarios`, `detalle_pedido`, `carrito_items`, `precio_historial`, `producto_atributos`;
-  1:1 con `inventario`.
+  `comentarios`, `detalle_pedido`, `carrito_items`, `precio_historial`, `producto_atributos`.
 
 ### `producto_variantes`
 - **Propósito:** combinaciones vendibles de un producto (ej. Camiseta *Roja / Talla M*),
-  cada una con su propio SKU, precio e inventario.
-- **Campos clave:** `sku` (único), `precio`, `stock`, `activo`, `deleted_at`.
+  cada una con su propio SKU y **precio autoritativo**. Todo producto tiene ≥1 variante.
+- **Campos clave:** `sku` (único), `precio`, `activo`.
 - **PK:** `id` · **FK:** `producto_id → productos.id` (ON DELETE CASCADE)
-- **Relaciones:** N:M con `atributo_valores` (vía `producto_atributos`).
+- **Relaciones:** N:M con `atributo_valores` (vía `producto_atributos`); 1:1 con `inventario`.
 
 ### `atributos`
 - **Propósito:** definición de atributos configurables (ej. Color, Talla, Material).
@@ -144,20 +148,19 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 - **Campos clave:** `url`, `orden`, `es_principal`.
 - **PK:** `id`
 - **FK:** `producto_id → productos.id` (ON DELETE CASCADE),
-  `variante_id → producto_variantes.id` (nullable)
+  `variante_id → producto_variantes.id` (nullable; imagen a nivel producto o variante)
 
 ### `inventario`
-- **Propósito:** control de existencias a nivel de producto (agregado). El stock por
-  variante vive en `producto_variantes.stock`; ver punto de validación #1.
+- **Propósito:** control de existencias **por variante** (1:1). Fuente de verdad del stock.
 - **Campos clave:** `stock`, `stock_reservado`, `umbral_bajo`.
-- **PK:** `id` · **FK:** `producto_id → productos.id` (único → 1:1)
+- **PK:** `id` · **FK:** `variante_id → producto_variantes.id` (único → 1:1)
 
 ### `precio_historial`
-- **Propósito:** trazabilidad de cambios de precio de un producto/variante.
+- **Propósito:** trazabilidad de cambios de precio **por variante**.
 - **Campos clave:** `precio_anterior`, `precio_nuevo`, `motivo`, `vigente_desde`.
 - **PK:** `id`
-- **FK:** `producto_id → productos.id`, `variante_id → producto_variantes.id` (nullable),
-  `usuario_id → usuarios.id` (quién cambió; nullable)
+- **FK:** `variante_id → producto_variantes.id` (NOT NULL),
+  `producto_id → productos.id` (para agrupar), `usuario_id → usuarios.id` (quién cambió; nullable)
 
 ### `favoritos`
 - **Propósito:** productos guardados/marcados por un usuario.
@@ -177,9 +180,9 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 ### `carrito_items`
 - **Propósito:** líneas del carrito (producto/variante + cantidad).
 - **Campos clave:** `cantidad`, `precio_unitario` (foto del precio al agregar).
-- **PK:** `id` (índice único (`carrito_id`, `producto_id`, `variante_id`))
+- **PK:** `id` (índice único (`carrito_id`, `variante_id`))
 - **FK:** `carrito_id → carritos.id` (ON DELETE CASCADE), `producto_id → productos.id`,
-  `variante_id → producto_variantes.id` (nullable)
+  `variante_id → producto_variantes.id` (**NOT NULL**)
 
 ### `estados_pedido`
 - **Propósito:** catálogo de estados de pedido (reemplaza el ENUM).
@@ -188,7 +191,7 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 
 ### `pedidos`
 - **Propósito:** orden de compra confirmada (cabecera).
-- **Campos clave:** `codigo` (único), `subtotal`, `descuento`, `envio`, `total`, `deleted_at`.
+- **Campos clave:** `codigo` (único), `subtotal`, `descuento`, `envio`, `total`.
 - **PK:** `id`
 - **FK:** `comprador_id → usuarios.id`, `direccion_id → direcciones.id`,
   `estado_id → estados_pedido.id`, `cupon_id → cupones.id` (nullable)
@@ -199,7 +202,7 @@ Este documento describe el modelo de datos completo para una aplicación tipo
 - **Campos clave:** `cantidad`, `precio_unitario`, `subtotal`.
 - **PK:** `id`
 - **FK:** `pedido_id → pedidos.id` (ON DELETE CASCADE), `producto_id → productos.id`,
-  `variante_id → producto_variantes.id` (nullable), `vendedor_id → usuarios.id`
+  `variante_id → producto_variantes.id` (**NOT NULL**, ON DELETE RESTRICT), `vendedor_id → usuarios.id`
   (desnormalizado para reportes por vendedor)
 
 ### `metodos_pago`
@@ -333,8 +336,8 @@ erDiagram
     subcategorias ||--o{ productos : clasifica
     usuarios ||--o{ productos : vende
     productos ||--o{ producto_imagenes : muestra
-    productos ||--|| inventario : controla
     productos ||--o{ producto_variantes : deriva
+    producto_variantes ||--|| inventario : controla
     producto_variantes ||--o{ producto_atributos : define
     atributos ||--o{ atributo_valores : posee
     atributo_valores ||--o{ producto_atributos : usa
@@ -392,15 +395,18 @@ erDiagram
 
 ---
 
-## 10. Puntos a validar antes de escribir SQL
+## 10. Decisiones finales (resueltas)
 
-1. **Stock: producto vs. variante.** Con `producto_variantes` agregado, el stock real
-   vive por variante. Propongo: `producto_variantes.stock` es la fuente de verdad cuando
-   el producto tiene variantes; `inventario` queda como agregado/umbral a nivel producto.
-   ¿Lo dejamos así o movemos todo el stock a variantes (productos simples = 1 variante por defecto)?
-2. **`estados_pedido`: ¿historial?** Hoy `pedidos.estado_id` guarda el estado actual.
-   ¿Quieres además una tabla `pedido_estado_historial` para la línea de tiempo? (No estaba
-   en tu lista; lo dejo fuera salvo que lo pidas.)
-3. **Imágenes de variante.** `producto_imagenes.variante_id` es nullable para permitir
-   imágenes tanto de producto como de variante. ¿Correcto?
-4. **Soft delete** confirmado solo en: `usuarios`, `productos`, `producto_variantes`, `pedidos`.
+1. **Stock y precio por variante.** Todo producto tiene ≥1 variante (los simples usan
+   una por defecto). El **stock** vive en `inventario` (1:1 con la variante) y el
+   **precio de venta** en `producto_variantes.precio`. `productos.precio` es solo
+   referencia. `variante_id` es NOT NULL en `carrito_items`, `detalle_pedido`,
+   `inventario` y `precio_historial`.
+2. **`carrito_items`** usa `UNIQUE (carrito_id, variante_id)`.
+3. **Imágenes de variante.** `producto_imagenes.variante_id` es nullable (imagen a nivel
+   producto o variante).
+4. **Soft delete** solo en: `usuarios`, `productos`, `categorias`, `direcciones`.
+5. **`pedido_estado_historial`** queda **fuera** de este alcance (no solicitado).
+
+> Validado contra **MySQL 8.4** (Docker): 41 tablas, 55 FKs, 4 vistas, 4 rutinas,
+> 4 triggers; CHECK y `ON DELETE` verificados con pruebas positivas y negativas.
