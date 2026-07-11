@@ -3,8 +3,11 @@
 API REST del Marketplace construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
-> Estado: **Fase 1 — infraestructura**. Solo está disponible el endpoint
-> `GET /health`. Aún no hay autenticación ni recursos de negocio.
+> Estado: **Fase 2 — autenticación**. Disponible el sistema completo de auth
+> (registro, login, JWT access/refresh, logout, cambio y recuperación de
+> contraseña, verificación de correo, RBAC). Ver
+> [`src/docs/auth.md`](./src/docs/auth.md). Aún no hay recursos de negocio
+> (productos, pedidos).
 
 ## Estructura
 
@@ -72,3 +75,7 @@ conexión a MySQL, CORS, rate limiting y nivel de logging.
 | Método | Ruta      | Descripción             | Respuesta            |
 | ------ | --------- | ----------------------- | -------------------- |
 | `GET`  | `/health` | Sondeo de salud (probe) | `{ "status": "ok" }` |
+
+Autenticación bajo `${API_PREFIX}/auth` (registro, login, refresh, logout,
+`me`, cambio/recuperación de contraseña y verificación de correo). Detalle
+completo en [`src/docs/auth.md`](./src/docs/auth.md).
