@@ -33,10 +33,17 @@ class ConflictError extends AppError {
   }
 }
 
+class ValidationError extends AppError {
+  constructor(message = 'Datos de entrada inválidos', details) {
+    super(message, httpStatus.UNPROCESSABLE_ENTITY, details);
+  }
+}
+
 module.exports = {
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  ValidationError,
 };
