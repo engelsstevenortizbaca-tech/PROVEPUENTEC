@@ -3,11 +3,12 @@
 API REST del Marketplace construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
-> Estado: **Fase 2 — autenticación**. Disponible el sistema completo de auth
+> Estado: **Fase 3 — categorías**. Disponible el sistema completo de auth
 > (registro, login, JWT access/refresh, logout, cambio y recuperación de
-> contraseña, verificación de correo, RBAC). Ver
-> [`src/docs/auth.md`](./src/docs/auth.md). Aún no hay recursos de negocio
-> (productos, pedidos).
+> contraseña, verificación de correo, RBAC; ver
+> [`src/docs/auth.md`](./src/docs/auth.md)) y el CRUD de **categorías** con
+> soft delete y RBAC (ver [`src/docs/categories.md`](./src/docs/categories.md)).
+> Aún no hay más recursos de negocio (productos, pedidos).
 
 ## Estructura
 
@@ -79,3 +80,7 @@ conexión a MySQL, CORS, rate limiting y nivel de logging.
 Autenticación bajo `${API_PREFIX}/auth` (registro, login, refresh, logout,
 `me`, cambio/recuperación de contraseña y verificación de correo). Detalle
 completo en [`src/docs/auth.md`](./src/docs/auth.md).
+
+Categorías bajo `${API_PREFIX}/categories` (listado público con filtros y
+paginación; alta, edición, borrado lógico y restauración solo para `admin`).
+Detalle completo en [`src/docs/categories.md`](./src/docs/categories.md).
