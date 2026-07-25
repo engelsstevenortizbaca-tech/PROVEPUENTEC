@@ -3,11 +3,15 @@
 API REST del Marketplace construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
-> Estado: **Fase 2 — autenticación**. Disponible el sistema completo de auth
+> Estado: **Fase 4 — subcategorías**. Disponible el sistema completo de auth
 > (registro, login, JWT access/refresh, logout, cambio y recuperación de
-> contraseña, verificación de correo, RBAC). Ver
-> [`src/docs/auth.md`](./src/docs/auth.md). Aún no hay recursos de negocio
-> (productos, pedidos).
+> contraseña, verificación de correo, RBAC; ver
+> [`src/docs/auth.md`](./src/docs/auth.md)) y la **taxonomía del catálogo**:
+> CRUD de **categorías** con soft delete
+> (ver [`src/docs/categories.md`](./src/docs/categories.md)) y de
+> **subcategorías** (ver
+> [`src/docs/subcategories.md`](./src/docs/subcategories.md)), ambos con RBAC.
+> Aún no hay más recursos de negocio (productos, pedidos).
 
 ## Estructura
 
@@ -79,3 +83,12 @@ conexión a MySQL, CORS, rate limiting y nivel de logging.
 Autenticación bajo `${API_PREFIX}/auth` (registro, login, refresh, logout,
 `me`, cambio/recuperación de contraseña y verificación de correo). Detalle
 completo en [`src/docs/auth.md`](./src/docs/auth.md).
+
+Categorías bajo `${API_PREFIX}/categories` (listado público con filtros y
+paginación; alta, edición, borrado lógico y restauración solo para `admin`).
+Detalle completo en [`src/docs/categories.md`](./src/docs/categories.md).
+
+Subcategorías bajo `${API_PREFIX}/subcategories` (segundo nivel de la
+taxonomía; listado público filtrable por `categoriaId`, gestión solo para
+`admin`, borrado definitivo bloqueado si hay productos asociados). Detalle
+completo en [`src/docs/subcategories.md`](./src/docs/subcategories.md).
