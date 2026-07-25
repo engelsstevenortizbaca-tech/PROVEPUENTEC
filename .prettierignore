@@ -1,0 +1,14 @@
+# Archivos y carpetas que Prettier no debe formatear.
+node_modules
+dist
+build
+client/dist
+server/dist
+coverage
+
+# Ficheros generados / bloqueos de dependencias.
+package-lock.json
+*.min.js
+
+# La documentación Markdown se gestiona manualmente por ahora.
+*.md
