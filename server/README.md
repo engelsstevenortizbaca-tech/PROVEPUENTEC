@@ -3,14 +3,15 @@
 API REST de UCC Market construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
-> Estado: **Fase 4 — subcategorías**. Disponible el sistema completo de auth
+> Estado: **Fase 5 — marcas**. Disponible el sistema completo de auth
 > (registro, login, JWT access/refresh, logout, cambio y recuperación de
 > contraseña, verificación de correo, RBAC; ver
-> [`src/docs/auth.md`](./src/docs/auth.md)) y la **taxonomía del catálogo**:
-> CRUD de **categorías** con soft delete
-> (ver [`src/docs/categories.md`](./src/docs/categories.md)) y de
+> [`src/docs/auth.md`](./src/docs/auth.md)) y el **catálogo base**: CRUD de
+> **categorías** con soft delete
+> (ver [`src/docs/categories.md`](./src/docs/categories.md)), de
 > **subcategorías** (ver
-> [`src/docs/subcategories.md`](./src/docs/subcategories.md)), ambos con RBAC.
+> [`src/docs/subcategories.md`](./src/docs/subcategories.md)) y de **marcas**
+> (ver [`src/docs/brands.md`](./src/docs/brands.md)), todos con RBAC.
 > Aún no hay más recursos de negocio (productos, pedidos).
 
 ## Estructura
@@ -92,3 +93,7 @@ Subcategorías bajo `${API_PREFIX}/subcategories` (segundo nivel de la
 taxonomía; listado público filtrable por `categoriaId`, gestión solo para
 `admin`, borrado definitivo bloqueado si hay productos asociados). Detalle
 completo en [`src/docs/subcategories.md`](./src/docs/subcategories.md).
+
+Marcas bajo `${API_PREFIX}/brands` (catálogo de fabricantes; listado público
+con filtros y paginación, gestión solo para `admin`, nombre y slug únicos).
+Detalle completo en [`src/docs/brands.md`](./src/docs/brands.md).

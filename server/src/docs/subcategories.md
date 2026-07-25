@@ -89,5 +89,7 @@ Respuesta:
   aparecer en las lecturas y no pueden gestionarse hasta restaurar la categoría.
 - El borrado se **bloquea con `409 Conflict`** si la subcategoría tiene
   productos asociados (la FK `productos.subcategoria_id` es `ON DELETE
-RESTRICT`). Se cuentan también los productos con soft delete.
+RESTRICT`). Se cuentan también los productos con soft delete. En
+  [marcas](./brands.md) el borrado no se bloquea, porque su FK es
+  `ON DELETE SET NULL`.
 - La respuesta de un recurso individual va envuelta en `{ "subcategory": { ... } }`.
