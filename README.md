@@ -72,10 +72,49 @@ Marketplace/
 # Clonar el repositorio
 git clone <url-del-repositorio>
 cd Marketplace
+
+# Instalar dependencias de tooling (también activa los hooks de Husky)
+npm install
 ```
 
 Instrucciones detalladas de instalación y ejecución se documentarán en
 [`docs/`](./docs) a medida que avance el desarrollo.
+
+---
+
+## ✅ Calidad de código (tooling)
+
+El repositorio incluye un conjunto de herramientas de calidad ya configuradas.
+
+### Scripts disponibles
+
+| Script                 | Descripción                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `npm run lint`         | Analiza el código con ESLint.                            |
+| `npm run lint:fix`     | Corrige automáticamente los problemas que ESLint pueda.  |
+| `npm run format`       | Formatea el proyecto con Prettier.                       |
+| `npm run format:check` | Verifica el formato sin modificar archivos (usado en CI).|
+| `npm run build`        | Compila los workspaces (`client` y `server`).            |
+
+### Herramientas
+
+- **ESLint** (flat config) — reglas para React (cliente) y Node.js (servidor).
+- **Prettier** — formateo consistente, integrado con ESLint (sin conflictos).
+- **EditorConfig** — estilo de edición común (UTF-8, LF, 2 espacios).
+- **Husky** — hooks de Git (`pre-commit`, `commit-msg`), activados por `npm install`.
+- **lint-staged** — ejecuta ESLint/Prettier solo sobre los archivos en *stage*.
+- **commitlint** — obliga a usar [Conventional Commits](https://www.conventionalcommits.org).
+- **GitHub Actions** — CI que instala, lintea, verifica formato y compila.
+
+### Convención de commits
+
+Los mensajes deben seguir el formato `tipo(alcance): descripción`, por ejemplo:
+
+```
+feat(client): agregar página de inicio
+fix(server): corregir validación de token
+chore: actualizar dependencias
+```
 
 ---
 
