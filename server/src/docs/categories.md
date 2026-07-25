@@ -4,7 +4,8 @@ Base: `${API_PREFIX}/categories` (por defecto `/api/categories`).
 
 Gestiona el catálogo de **categorías de primer nivel** (tabla `categorias`).
 Las categorías usan **soft delete**: al eliminarlas se marca `deleted_at` y dejan
-de aparecer en las lecturas; pueden restaurarse.
+de aparecer en las lecturas; pueden restaurarse. El segundo nivel de la
+taxonomía vive en [subcategorías](./subcategories.md).
 
 ## Autorización
 
