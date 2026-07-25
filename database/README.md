@@ -1,6 +1,6 @@
 # Database — MySQL
 
-Recursos relacionados con la base de datos del Marketplace.
+Recursos relacionados con la base de datos de UCC Market.
 
 ## Estructura
 

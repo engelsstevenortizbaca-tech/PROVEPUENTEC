@@ -1,8 +1,8 @@
 {
-  "name": "@marketplace/server",
+  "name": "@ucc-market/server",
   "version": "0.1.0",
   "private": true,
-  "description": "API REST del Marketplace (Node.js + Express + MySQL, arquitectura por capas).",
+  "description": "API REST de UCC Market (Node.js + Express + MySQL, arquitectura por capas).",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -14,6 +14,7 @@
     "test": "node --test"
   },
   "keywords": [
+    "ucc-market",
     "marketplace",
     "api",
     "express",

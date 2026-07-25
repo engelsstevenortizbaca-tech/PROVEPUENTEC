@@ -1,6 +1,6 @@
 # Documentación
 
-Documentación técnica y funcional del proyecto Marketplace.
+Documentación técnica y funcional del proyecto UCC Market.
 
 Aquí se incluirán, entre otros:
 

@@ -1,6 +1,6 @@
 # Server — Backend (Node.js + Express + MySQL)
 
-API REST del Marketplace construida con **Node.js**, **Express** y **MySQL**,
+API REST de UCC Market construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
 > Estado: **Fase 4 — subcategorías**. Disponible el sistema completo de auth

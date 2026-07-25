@@ -1,6 +1,6 @@
-# 🛒 Marketplace
+# 🛒 UCC Market
 
-Aplicación **Marketplace** full-stack que permite a los usuarios publicar,
+Aplicación **UCC Market** full-stack que permite a los usuarios publicar,
 explorar y comprar productos. Desarrollada con **React**, **Node.js**, **MySQL**
 y empaquetada para móvil con **Capacitor**.
 
@@ -21,7 +21,7 @@ y empaquetada para móvil con **Capacitor**.
 ## 📁 Estructura del proyecto
 
 ```
-Marketplace/
+ucc-market/
 ├── client/        # Aplicación frontend (React + Vite)
 │   ├── public/    # Recursos estáticos públicos
 │   └── src/
@@ -71,7 +71,7 @@ Marketplace/
 ```bash
 # Clonar el repositorio
 git clone <url-del-repositorio>
-cd Marketplace
+cd ucc-market
 ```
 
 Instrucciones detalladas de instalación y ejecución se documentarán en
