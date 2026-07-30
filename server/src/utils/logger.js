@@ -2,19 +2,38 @@
 
 const fs = require('fs');
 const path = require('path');
+const env = require('../config/env');
 
 // Logger minimalista sin dependencias externas: escribe a consola y a
 // logs/app.log. Respeta el nivel configurado en LOG_LEVEL.
+// El nivel se toma de `config/env`, no de process.env: así se aplica el valor
+// del archivo .env con independencia del orden en que se carguen los módulos.
 const LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
-const threshold = LEVELS[(process.env.LOG_LEVEL || 'info').toLowerCase()] ?? LEVELS.info;
+const threshold = LEVELS[env.logLevel] ?? LEVELS.info;
 
 const logsDir = path.resolve(__dirname, '../../logs');
-try {
-  fs.mkdirSync(logsDir, { recursive: true });
-} catch {
-  // Si no se puede crear el directorio, se seguirá escribiendo a consola.
+
+// Stream de escritura en modo append, creado de forma perezosa. Su E/S es
+// asíncrona: `appendFileSync` en cada línea bloquearía el event loop en la ruta
+// de toda petición HTTP, porque morgan las registra todas.
+let fileStream;
+
+function target() {
+  if (fileStream !== undefined) return fileStream;
+
+  try {
+    fs.mkdirSync(logsDir, { recursive: true });
+    fileStream = fs.createWriteStream(path.join(logsDir, 'app.log'), { flags: 'a' });
+    // Un fallo de escritura no debe interrumpir la aplicación: se deja de
+    // escribir a disco y se sigue registrando por consola.
+    fileStream.on('error', () => {
+      fileStream = null;
+    });
+  } catch {
+    fileStream = null;
+  }
+  return fileStream;
 }
-const logFile = path.join(logsDir, 'app.log');
 
 function write(level, message, meta) {
   if (LEVELS[level] > threshold) return;
@@ -23,14 +42,10 @@ function write(level, message, meta) {
   const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
   const line = `[${timestamp}] ${level.toUpperCase()}: ${message}${metaStr}`;
 
-  const target = level === 'error' ? process.stderr : process.stdout;
-  target.write(`${line}\n`);
+  const consoleStream = level === 'error' ? process.stderr : process.stdout;
+  consoleStream.write(`${line}\n`);
 
-  try {
-    fs.appendFileSync(logFile, `${line}\n`);
-  } catch {
-    // La escritura a disco no debe interrumpir la aplicación.
-  }
+  target()?.write(`${line}\n`);
 }
 
 const logger = {
