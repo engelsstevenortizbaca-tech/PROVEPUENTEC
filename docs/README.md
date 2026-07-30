@@ -12,6 +12,7 @@ Documentación técnica y funcional de **PROVEPUENTEC**.
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)   | Orden de implementación, criterios de aceptación, pruebas y checklist      |
 | [ROADMAP.md](ROADMAP.md)                           | Estado de avance por módulo                                                |
 | [AUDIT_PHASE_-1.md](AUDIT_PHASE_-1.md)             | Informe de la auditoría técnica previa a la fase 0. Hallazgos y bloqueos    |
+| [AUDIT_2026-07-30.md](AUDIT_2026-07-30.md)         | Auditoría de código, seguridad, BD y documentación. Correcciones aplicadas  |
 
 ### Documentos no disponibles en esta rama
 

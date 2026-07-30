@@ -72,8 +72,37 @@ npm start                 # producción
 
 ## Variables de entorno
 
-Ver [`.env.example`](./.env.example). Incluye configuración del servidor,
-conexión a MySQL, CORS, rate limiting y nivel de logging.
+Todas están documentadas en [`.env.example`](./.env.example), que es la
+referencia. Por grupos:
+
+| Grupo              | Variables                                                                                                                                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Servidor           | `NODE_ENV`, `PORT`, `API_PREFIX`, `APP_URL`, `TRUST_PROXY`                                                                                                                                                                  |
+| MySQL              | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_CONNECTION_LIMIT`                                                                                                                                            |
+| CORS               | `CORS_ORIGINS`                                                                                                                                                                                                              |
+| Rate limiting      | `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX`, `RATE_LIMIT_AUTH_WINDOW_MS`, `RATE_LIMIT_AUTH_MAX`                                                                                                                                |
+| Subida de archivos | `UPLOAD_DIR`, `UPLOAD_PUBLIC_PATH`, `UPLOAD_MAX_SIZE_MB`, `UPLOAD_MAX_FILES`, `UPLOAD_ALLOWED_MIME_TYPES`                                                                                                                   |
+| Autenticación      | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `BCRYPT_ROUNDS`, `PASSWORD_RESET_TTL_MIN`, `EMAIL_VERIFICATION_TTL_MIN`, `AUTH_REQUIRE_VERIFIED_EMAIL`, `REFRESH_COOKIE_NAME` |
+| Logging            | `LOG_LEVEL`                                                                                                                                                                                                                 |
+
+### Requisitos en producción
+
+Con `NODE_ENV=production` el servidor **aborta el arranque** si:
+
+- `JWT_ACCESS_SECRET` o `JWT_REFRESH_SECRET` conservan el valor de desarrollo,
+  miden menos de 32 caracteres o son iguales entre sí.
+- `CORS_ORIGINS` es `*` (la API acepta credenciales: el comodín la expondría a
+  cualquier sitio).
+
+Para generar un secreto:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+`TRUST_PROXY` solo debe ser mayor que 0 si hay un proxy inverso delante. Con un
+valor distinto de 0 y sin proxy, un cliente puede falsear su IP mediante
+`X-Forwarded-For` y eludir el rate limiting.
 
 ## Endpoints
 

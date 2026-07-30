@@ -5,13 +5,16 @@ endpoints: son piezas que los servicios, repositorios y rutas reutilizan.
 
 Corresponde a los prerrequisitos **P2 a P5** de `docs/IMPLEMENTATION_PLAN.md`.
 
-| Pieza                | Archivo                        |
-| -------------------- | ------------------------------ |
-| Helper transaccional | `src/database/transaction.js`  |
-| Middleware ownership | `src/middlewares/ownership.js` |
-| Middleware upload    | `src/middlewares/upload.js`    |
-| Utilidades de subida | `src/utils/uploads.js`         |
-| Constantes de estado | `src/constants/*Status.js`     |
+| Pieza                     | Archivo                           |
+| ------------------------- | --------------------------------- |
+| Helper transaccional      | `src/database/transaction.js`     |
+| Fragmentos de SQL         | `src/database/sql.js`             |
+| Parámetros de consulta    | `src/utils/query.js`              |
+| Middleware ownership      | `src/middlewares/ownership.js`    |
+| Middleware upload         | `src/middlewares/upload.js`       |
+| Limitadores de peticiones | `src/middlewares/rateLimiters.js` |
+| Utilidades de subida      | `src/utils/uploads.js`            |
+| Constantes de estado      | `src/constants/*Status.js`        |
 
 ---
 
@@ -42,19 +45,25 @@ encadenarla manualmente por toda la pila de llamadas.
 
 ### Repositorios que participan en una transacción
 
-Aceptan la conexión como último parámetro opcional:
+**Los siete repositorios usan `executor()` en lugar de `pool.execute`.** No hace
+falta encadenar la conexión: si el llamador está dentro de `withTransaction`, la
+consulta se une a esa transacción; si no, va al pool.
 
 ```js
-async create(data, conn) {
-  const [result] = await executor(conn).execute(`INSERT ...`, data);
+async create(data) {
+  const [result] = await executor().execute(`INSERT ...`, data);
   return result.insertId;
 }
 ```
 
 `executor(conn)` resuelve, en este orden: la conexión explícita, la de la
-transacción activa, y en su defecto el pool. Los siete repositorios existentes
-usan `pool.execute` directamente; se les añadirá el parámetro cuando participen
-en una transacción.
+transacción activa, y en su defecto el pool. Un repositorio que usara
+`pool.execute` directamente **escaparía en silencio** de la transacción del
+llamador, que quedaría creyendo que la operación es atómica sin serlo: de ahí que
+todos usen `executor()`, participen hoy en una transacción o no.
+
+Un repositorio puede además aceptar la conexión como último parámetro opcional
+(`create(data, conn)`) cuando convenga hacerla explícita.
 
 ### Reglas
 
@@ -62,6 +71,20 @@ en una transacción.
   el despacho externo ocurre **después** del `COMMIT`.
 - Las notificaciones se **registran** dentro de la transacción; se **despachan**
   fuera.
+- El hash de contraseña (bcrypt, cientos de milisegundos) se calcula **antes** de
+  abrir la transacción: no debe retener una conexión del pool.
+
+### Flujos transaccionales en uso
+
+| Flujo                 | Escrituras que agrupa                                   |
+| --------------------- | ------------------------------------------------------- |
+| `auth.register`       | usuario + rol por defecto + token de verificación       |
+| `auth.changePassword` | nuevo hash + revocación de todas las sesiones           |
+| `auth.forgotPassword` | invalidación de tokens previos + emisión del nuevo      |
+| `auth.resetPassword`  | consumo del token + nuevo hash + revocación de sesiones |
+| `auth.verifyEmail`    | consumo del token + marca de correo verificado          |
+
+En todos ellos el envío del correo queda fuera de la transacción.
 
 ---
 
@@ -159,13 +182,72 @@ catálogo conserva `pagado` y `reembolsado`, que no se eliminan.
 
 ---
 
-## 5. Pruebas
+## 5. Parámetros de consulta y fragmentos de SQL
 
-| Archivo                     | Cubre                                                                                          |
-| --------------------------- | ---------------------------------------------------------------------------------------------- |
-| `tests/transaction.test.js` | Commit, rollback, propagación del error, liberación de la conexión, no anidamiento, `executor` |
-| `tests/ownership.test.js`   | 401, 404, 403, propiedad, participación, recurso adjuntado                                     |
-| `tests/upload.test.js`      | Formatos admitidos y rechazados, límites, traducción de errores, nombres y URLs                |
+Piezas que los listados y los repositorios de todos los módulos comparten, en vez
+de reimplementarlas por módulo.
+
+### `src/utils/query.js` — servicios
+
+```js
+const { parsePagination, parseOptionalBoolean, parseSearch, paginated } = require('../utils/query');
+
+async function list(query = {}) {
+  const { page, limit, offset } = parsePagination(query); // defecto 20, máximo 100
+  const { rows, total } = await repo.findAll({
+    q: parseSearch(query.q), // recortado, o null
+    activo: parseOptionalBoolean(query.activo), // true | false | null (sin filtrar)
+    limit,
+    offset,
+  });
+  return paginated(rows.map(toPublic), { page, limit, total });
+}
+```
+
+`parseOptionalBoolean` distingue **"sin filtrar" (`null`) de "filtrar por
+`false`"**: un parámetro ausente no debe restringir el listado.
+
+`paginated` produce el formato de colección acordado: `{ data, pagination }`.
+
+### `src/database/sql.js` — repositorios
+
+```js
+const { limitOffset, buildSet } = require('../database/sql');
+
+// LIMIT/OFFSET se interpolan (mysql2 no los admite como placeholders de forma
+// fiable), así que limitOffset fuerza entero no negativo: es la barrera.
+`SELECT ... ORDER BY nombre ASC ${limitOffset({ limit, offset })}`;
+
+// UPDATE parcial. `allowed` es la lista blanca de columnas del repositorio: los
+// nombres nunca provienen de las claves que envía el cliente.
+const set = buildSet({
+  allowed: ['nombre', 'slug', 'activo'],
+  fields,
+  booleanColumns: ['activo'],
+});
+if (!set) return; // nada que actualizar
+await executor().execute(`UPDATE marcas SET ${set.sql} WHERE id = :id`, { ...set.params, id });
+```
+
+`existsBySlug` **no** se ha generalizado a propósito: un helper genérico
+recibiría el nombre de la tabla y la columna como cadena, abriendo una superficie
+de inyección que hoy no existe. La duplicación es de tres líneas por repositorio y
+la explicitud vale más.
+
+---
+
+## 6. Pruebas
+
+| Archivo                       | Cubre                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `tests/transaction.test.js`   | Commit, rollback, propagación del error, liberación de la conexión, no anidamiento, `executor` |
+| `tests/auth.register.test.js` | El alta usa la conexión de la transacción; un fallo intermedio provoca ROLLBACK                |
+| `tests/ownership.test.js`     | 401, 404, 403, propiedad, participación, recurso adjuntado                                     |
+| `tests/upload.test.js`        | Formatos admitidos y rechazados, límites, traducción de errores, nombres y URLs                |
+| `tests/query.test.js`         | Paginación, acotado del límite, booleano de tres estados, formato de colección                 |
+| `tests/sql.test.js`           | Saneado de LIMIT/OFFSET, lista blanca de columnas, columnas booleanas                          |
+| `tests/env.test.js`           | Guarda de configuración de producción (secretos y CORS)                                        |
+| `tests/requestLogger.test.js` | Redacción de tokens en la URL registrada                                                       |
 
 Sustituyen el singleton correspondiente (`pool`, cargador del recurso) sin tocar
 MySQL ni escribir en disco, siguiendo el patrón del resto de la suite.

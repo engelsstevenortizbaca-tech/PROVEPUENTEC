@@ -34,6 +34,30 @@ Al cierre de la auditoría (2026-07-28): `lint` limpio, `format:check` conforme,
 Al cierre de P2–P5 (2026-07-29): `lint` limpio, `format:check` conforme, 93/93
 pruebas en verde, servidor arrancando y `GET /health` → 200.
 
+Auditoría técnica completa (2026-07-30) — informe en `docs/AUDIT_2026-07-30.md`.
+Correcciones aplicadas:
+
+- Seguridad: guarda de configuración de producción (secretos JWT y CORS),
+  redacción de tokens en los logs, `trust proxy` configurable, limitador
+  específico para los endpoints de autenticación
+- Corrección: `activo` se convierte a booleano en Validators, flujos de auth
+  transaccionales (los siete repositorios pasan a `executor()`), `ER_DUP_ENTRY`
+  traducido a 409, caducidad de la cookie de refresh, aviso si falta el rol
+  por defecto
+- Rendimiento: el logger deja de bloquear el event loop con `appendFileSync`
+- Calidad: paginación, filtros y fragmentos de SQL extraídos a
+  `utils/query.js` y `database/sql.js`, eliminando la duplicación entre los tres
+  módulos de catálogo
+- Documentación: README raíz, `server/README.md`, `database/README.md` y
+  `base-tecnica.md` actualizados
+
+Al cierre de la auditoría (2026-07-30): `lint` limpio, `format:check` conforme,
+131/131 pruebas en verde, servidor arrancando y `GET /health` → 200.
+
+**Pendiente de autorización:** índice UNIQUE en `marcas.nombre` (BD-1 del
+informe). El service ya trata la unicidad del nombre como regla de negocio, pero
+la BD no la impone, así que dos peticiones simultáneas pueden duplicarlo.
+
 ---
 
 ## Incompleto

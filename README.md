@@ -1,27 +1,33 @@
-# 🛒 UCC Market
+# 🛒 PROVEPUENTEC · UCC Market
 
-Aplicación **UCC Market** full-stack que permite a los usuarios publicar,
-explorar y comprar productos. Desarrollada con **React**, **Node.js**, **MySQL**
-y empaquetada para móvil con **Capacitor**.
+Marketplace full-stack donde compradores y vendedores publican productos,
+**negocian el precio y el envío**, generan pedidos y siguen su entrega.
+
+> **Estado:** backend en desarrollo activo. Operativos los módulos **Auth**,
+> **Categorías**, **Subcategorías** y **Marcas**. El frontend está en fase de
+> estructura (sin código de aplicación todavía).
+> El avance por módulo está en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ---
 
 ## 🚀 Stack tecnológico
 
-| Capa            | Tecnología                          |
-| --------------- | ----------------------------------- |
-| **Frontend**    | React + Vite                        |
-| **Backend**     | Node.js + Express                   |
-| **Base de datos** | MySQL                             |
-| **Móvil**       | Capacitor                           |
-| **Control de versiones** | Git + GitHub               |
+| Capa                     | Tecnología                                       |
+| ------------------------ | ------------------------------------------------ |
+| **Frontend**             | React + Vite                                     |
+| **Backend**              | Node.js + Express (arquitectura por capas)       |
+| **Base de datos**        | MySQL 8                                          |
+| **Autenticación**        | JWT (access + refresh) · bcrypt                  |
+| **Validación**           | express-validator                                |
+| **Pruebas**              | Runner nativo de Node (`node --test`)            |
+| **Control de versiones** | Git + GitHub                                     |
 
 ---
 
 ## 📁 Estructura del proyecto
 
 ```
-ucc-market/
+Marketplace/
 ├── client/        # Aplicación frontend (React + Vite)
 │   ├── public/    # Recursos estáticos públicos
 │   └── src/
@@ -33,25 +39,126 @@ ucc-market/
 │       ├── context/      # Estado global (Context API)
 │       └── utils/        # Utilidades y helpers
 │
-├── server/        # API backend (Node.js + Express)
-│   └── src/
-│       ├── config/       # Configuración (DB, entorno)
-│       ├── controllers/  # Lógica de los endpoints
-│       ├── routes/       # Definición de rutas
-│       ├── models/       # Modelos de datos
-│       ├── middlewares/  # Middlewares (auth, errores)
-│       ├── services/     # Lógica de negocio
-│       └── utils/        # Utilidades y helpers
+├── server/        # API REST (Node.js + Express)
+│   ├── src/
+│   │   ├── config/       # Carga y validación de variables de entorno
+│   │   ├── database/     # Pool MySQL, helper transaccional, fragmentos SQL
+│   │   ├── routes/       # Definición de endpoints
+│   │   ├── controllers/  # Petición y respuesta HTTP (sin lógica)
+│   │   ├── services/     # Lógica de negocio
+│   │   ├── repositories/ # Acceso a datos (todas las consultas)
+│   │   ├── validators/   # Reglas de validación de entrada
+│   │   ├── middlewares/  # Auth, RBAC, errores, subidas, rate limiting
+│   │   ├── models/       # Proyección de filas a representación pública
+│   │   ├── errors/       # AppError y errores HTTP derivados
+│   │   ├── constants/    # Códigos HTTP, roles, estados de dominio
+│   │   ├── utils/        # Logger, JWT, slug, contraseñas, subidas
+│   │   └── docs/         # Documentación por módulo de la API
+│   ├── tests/            # Pruebas
+│   ├── uploads/          # Archivos subidos (runtime)
+│   └── logs/             # Logs de la aplicación (runtime)
 │
-├── database/      # Esquemas, migraciones y seeds
-│   ├── migrations/
-│   └── seeds/
+├── database/      # Esquema, migraciones, índices, vistas y seeds
 │
-├── docs/          # Documentación del proyecto
+├── docs/          # Documentación técnica y funcional
 │
-├── .gitignore
+├── CLAUDE.md      # Convenciones obligatorias del proyecto
 └── README.md
 ```
+
+La arquitectura por capas es obligatoria: **Repository → Service → Controller →
+Routes**. Los detalles y las razones están en
+[`CLAUDE.md`](./CLAUDE.md) y [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+
+---
+
+## 🛠️ Puesta en marcha
+
+### Requisitos
+
+- Node.js >= 18
+- MySQL 8
+
+### 1 · Clonar el repositorio
+
+```bash
+git clone <url-del-repositorio>
+cd Marketplace
+```
+
+### 2 · Crear la base de datos
+
+> ⚠️ **El esquema completo no está en esta rama.** `database/` contiene aquí solo
+> `migrations/008_auth.sql` (tablas de tokens). Las migraciones `001`–`007`, los
+> índices, las vistas, los procedimientos y los seeds están en `origin/develop`.
+> Hasta que exista la rama de integración, la puesta en marcha de la BD requiere
+> combinar ambas. Ver `docs/ROADMAP.md` → *Prerrequisitos técnicos*.
+
+Con la rama de integración (esquema completo disponible), desde `database/`:
+
+```bash
+cd database
+mysql -u root -p < schema.sql                      # migraciones, índices, vistas
+mysql -u root -p marketplace < seeds/001_catalogos.sql   # roles, estados, catálogos
+mysql -u root -p marketplace < migrations/008_auth.sql   # tablas de tokens de auth
+```
+
+El seed de catálogos es **obligatorio**: sin la tabla `roles` poblada, el registro
+de usuarios crea cuentas sin rol.
+
+Modelo de datos y notas de compatibilidad en
+[`docs/DATABASE_DESIGN.md`](./docs/DATABASE_DESIGN.md).
+
+### 3 · Levantar la API
+
+```bash
+cd server
+cp .env.example .env      # ajusta las credenciales de MySQL
+npm install
+npm run dev               # desarrollo (nodemon)
+```
+
+Comprobación rápida:
+
+```bash
+curl http://localhost:3000/health     # → {"status":"ok"}
+```
+
+Las variables de entorno están documentadas en
+[`server/README.md`](./server/README.md#variables-de-entorno). **En producción el
+servidor no arranca con los secretos JWT de desarrollo ni con `CORS_ORIGINS=*`.**
+
+### 4 · Frontend
+
+Aún no hay aplicación React: `client/` contiene únicamente la estructura de
+carpetas. Se documentará aquí cuando exista.
+
+---
+
+## ✅ Calidad
+
+Antes de dar por terminada una tarea, desde `server/`:
+
+```bash
+npm run lint
+npm run format:check
+npm test
+```
+
+---
+
+## 📚 Documentación
+
+| Documento                                                       | Contenido                                       |
+| --------------------------------------------------------------- | ----------------------------------------------- |
+| [`docs/BUSINESS_RULES.md`](./docs/BUSINESS_RULES.md)            | Reglas de negocio. Fuente de verdad funcional.  |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)                | Decisiones, flujo, módulos y endpoints          |
+| [`docs/DATABASE_DESIGN.md`](./docs/DATABASE_DESIGN.md)          | Modelo de datos. Referencia de las migraciones. |
+| [`docs/IMPLEMENTATION_PLAN.md`](./docs/IMPLEMENTATION_PLAN.md)  | Orden, criterios de aceptación y pruebas        |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md)                          | Estado de avance                                |
+| [`server/src/docs/`](./server/src/docs/)                        | Documentación de cada módulo de la API          |
+
+Índice completo en [`docs/README.md`](./docs/README.md).
 
 ---
 
@@ -60,22 +167,6 @@ ucc-market/
 - **main** → rama estable / producción.
 - **develop** → rama de integración de nuevas funcionalidades.
 - **feature/** → ramas para funcionalidades específicas.
-
----
-
-## 🛠️ Puesta en marcha
-
-> ⚠️ El proyecto se encuentra en su fase inicial (estructura base).
-> Las dependencias y funcionalidades se irán agregando progresivamente.
-
-```bash
-# Clonar el repositorio
-git clone <url-del-repositorio>
-cd ucc-market
-```
-
-Instrucciones detalladas de instalación y ejecución se documentarán en
-[`docs/`](./docs) a medida que avance el desarrollo.
 
 ---
 
