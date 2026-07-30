@@ -1,11 +1,13 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
 
 // Acceso a datos de tokens de verificación de correo (un solo uso).
+// Usa `executor()` para poder participar en la transacción del registro
+// (ver `user.repository.js`).
 const emailVerificationRepository = {
   async create({ usuarioId, tokenHash, expiraAt }) {
-    await pool.execute(
+    await executor().execute(
       `INSERT INTO email_verification_tokens (usuario_id, token_hash, expira_at)
        VALUES (:usuarioId, :tokenHash, :expiraAt)`,
       { usuarioId, tokenHash, expiraAt }
@@ -13,7 +15,7 @@ const emailVerificationRepository = {
   },
 
   async findValidByHash(tokenHash) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT id, usuario_id, expira_at, usado_at
          FROM email_verification_tokens
         WHERE token_hash = :tokenHash
@@ -26,14 +28,14 @@ const emailVerificationRepository = {
   },
 
   async markUsed(id) {
-    await pool.execute(
+    await executor().execute(
       'UPDATE email_verification_tokens SET usado_at = CURRENT_TIMESTAMP WHERE id = :id',
       { id }
     );
   },
 
   async invalidateForUser(usuarioId) {
-    await pool.execute(
+    await executor().execute(
       `UPDATE email_verification_tokens
           SET usado_at = CURRENT_TIMESTAMP
         WHERE usuario_id = :usuarioId AND usado_at IS NULL`,

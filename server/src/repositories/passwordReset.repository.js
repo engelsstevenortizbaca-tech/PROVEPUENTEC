@@ -1,11 +1,11 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
 
 // Acceso a datos de tokens de restablecimiento de contraseña (un solo uso).
 const passwordResetRepository = {
   async create({ usuarioId, tokenHash, expiraAt }) {
-    await pool.execute(
+    await executor().execute(
       `INSERT INTO password_reset_tokens (usuario_id, token_hash, expira_at)
        VALUES (:usuarioId, :tokenHash, :expiraAt)`,
       { usuarioId, tokenHash, expiraAt }
@@ -13,7 +13,7 @@ const passwordResetRepository = {
   },
 
   async findValidByHash(tokenHash) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT id, usuario_id, expira_at, usado_at
          FROM password_reset_tokens
         WHERE token_hash = :tokenHash
@@ -26,7 +26,7 @@ const passwordResetRepository = {
   },
 
   async markUsed(id) {
-    await pool.execute(
+    await executor().execute(
       'UPDATE password_reset_tokens SET usado_at = CURRENT_TIMESTAMP WHERE id = :id',
       { id }
     );
@@ -34,7 +34,7 @@ const passwordResetRepository = {
 
   // Invalida tokens previos aún vigentes del usuario (uno activo a la vez).
   async invalidateForUser(usuarioId) {
-    await pool.execute(
+    await executor().execute(
       `UPDATE password_reset_tokens
           SET usado_at = CURRENT_TIMESTAMP
         WHERE usuario_id = :usuarioId AND usado_at IS NULL`,

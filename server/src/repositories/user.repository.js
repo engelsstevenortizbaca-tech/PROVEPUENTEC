@@ -1,11 +1,15 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
 
 // Acceso a datos de usuarios, roles y su relación (RBAC).
+// Usa `executor()` en lugar del pool directamente: si el llamador está dentro
+// de `withTransaction`, las consultas se unen a esa transacción; si no, van al
+// pool. El registro de un usuario necesita esa garantía (crea el usuario y le
+// asigna el rol: dejar una cuenta sin rol la vuelve inservible).
 const userRepository = {
   async findByEmail(email) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT id, nombre, apellido, email, password_hash, telefono, avatar_url,
               estado, email_verificado_at, created_at, updated_at, deleted_at
          FROM usuarios
@@ -17,7 +21,7 @@ const userRepository = {
   },
 
   async findById(id) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT id, nombre, apellido, email, password_hash, telefono, avatar_url,
               estado, email_verificado_at, created_at, updated_at, deleted_at
          FROM usuarios
@@ -29,14 +33,14 @@ const userRepository = {
   },
 
   async existsByEmail(email) {
-    const [rows] = await pool.execute('SELECT 1 FROM usuarios WHERE email = :email LIMIT 1', {
+    const [rows] = await executor().execute('SELECT 1 FROM usuarios WHERE email = :email LIMIT 1', {
       email,
     });
     return rows.length > 0;
   },
 
   async create({ nombre, apellido, email, passwordHash, telefono = null }) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `INSERT INTO usuarios (nombre, apellido, email, password_hash, telefono)
        VALUES (:nombre, :apellido, :email, :passwordHash, :telefono)`,
       { nombre, apellido, email, passwordHash, telefono }
@@ -45,21 +49,21 @@ const userRepository = {
   },
 
   async updatePasswordHash(id, passwordHash) {
-    await pool.execute('UPDATE usuarios SET password_hash = :passwordHash WHERE id = :id', {
+    await executor().execute('UPDATE usuarios SET password_hash = :passwordHash WHERE id = :id', {
       id,
       passwordHash,
     });
   },
 
   async markEmailVerified(id) {
-    await pool.execute(
+    await executor().execute(
       'UPDATE usuarios SET email_verificado_at = CURRENT_TIMESTAMP WHERE id = :id',
       { id }
     );
   },
 
   async getRoleByName(nombre) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       'SELECT id, nombre FROM roles WHERE nombre = :nombre LIMIT 1',
       { nombre }
     );
@@ -67,7 +71,7 @@ const userRepository = {
   },
 
   async getRolesByUserId(usuarioId) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT r.nombre
          FROM roles r
          JOIN usuario_rol ur ON ur.rol_id = r.id
@@ -78,7 +82,7 @@ const userRepository = {
   },
 
   async assignRole(usuarioId, rolId) {
-    await pool.execute(
+    await executor().execute(
       `INSERT IGNORE INTO usuario_rol (usuario_id, rol_id)
        VALUES (:usuarioId, :rolId)`,
       { usuarioId, rolId }

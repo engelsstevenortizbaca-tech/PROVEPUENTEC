@@ -2,6 +2,7 @@
 
 const env = require('../config/env');
 const logger = require('../utils/logger');
+const { withTransaction } = require('../database/transaction');
 const { DEFAULT_ROLE } = require('../constants/roles');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { generateToken, hashToken, expiresInMinutes } = require('../utils/token');
@@ -18,8 +19,10 @@ const { ConflictError, UnauthorizedError, ForbiddenError, BadRequestError } = re
 
 const ACTIVE = 'activo';
 
-// Crea y envía un token de verificación de correo (un solo uso).
-async function issueEmailVerification(usuarioId, email) {
+// Emite un token de verificación de correo (un solo uso) invalidando los
+// anteriores. Solo escribe en la BD: el envío del correo va aparte para poder
+// mantenerlo fuera de una transacción.
+async function createEmailVerificationToken(usuarioId) {
   await emailVerificationRepository.invalidateForUser(usuarioId);
   const rawToken = generateToken();
   await emailVerificationRepository.create({
@@ -27,6 +30,12 @@ async function issueEmailVerification(usuarioId, email) {
     tokenHash: hashToken(rawToken),
     expiraAt: expiresInMinutes(env.auth.emailVerificationTtlMin),
   });
+  return rawToken;
+}
+
+// Crea y envía un token de verificación de correo (un solo uso).
+async function issueEmailVerification(usuarioId, email) {
+  const rawToken = await createEmailVerificationToken(usuarioId);
   await mailer.sendVerificationEmail(email, rawToken);
   return rawToken;
 }
@@ -38,20 +47,43 @@ async function register(data, context = {}) {
     throw new ConflictError('Ya existe una cuenta con ese correo');
   }
 
+  // El hash se calcula antes de abrir la transacción: bcrypt tarda cientos de
+  // milisegundos y no debe retener una conexión del pool.
   const passwordHash = await hashPassword(data.password);
-  const usuarioId = await userRepository.create({
-    nombre: data.nombre,
-    apellido: data.apellido,
-    email,
-    passwordHash,
-    telefono: data.telefono || null,
+
+  // Alta atómica: el usuario, su rol y el token de verificación se escriben
+  // todo o nada. Sin transacción, un fallo tras `create` dejaría una cuenta sin
+  // rol —inservible y no recuperable por API, porque reintentar el registro
+  // devolvería 409 para siempre.
+  const { usuarioId, verificationToken } = await withTransaction(async () => {
+    const id = await userRepository.create({
+      nombre: data.nombre,
+      apellido: data.apellido,
+      email,
+      passwordHash,
+      telefono: data.telefono || null,
+    });
+
+    // Asigna el rol por defecto. Que falte en el catálogo es un error de
+    // configuración (seed de `roles` sin aplicar), no un caso normal: la cuenta
+    // queda sin rol y se le deniega todo. No se interrumpe el alta para no
+    // romper entornos ya existentes, pero debe quedar constancia en el log.
+    const role = await userRepository.getRoleByName(DEFAULT_ROLE);
+    if (role) {
+      await userRepository.assignRole(id, role.id);
+    } else {
+      logger.warn('El rol por defecto no existe en el catálogo: la cuenta queda sin rol', {
+        rol: DEFAULT_ROLE,
+        usuarioId: id,
+      });
+    }
+
+    return { usuarioId: id, verificationToken: await createEmailVerificationToken(id) };
   });
 
-  // Asigna el rol por defecto si el catálogo lo tiene.
-  const role = await userRepository.getRoleByName(DEFAULT_ROLE);
-  if (role) await userRepository.assignRole(usuarioId, role.id);
-
-  await issueEmailVerification(usuarioId, email);
+  // El correo se envía ya confirmada la transacción: es una operación de red y
+  // mantenerla dentro alargaría la transacción y sus bloqueos.
+  await mailer.sendVerificationEmail(email, verificationToken);
 
   const user = await userRepository.findById(usuarioId);
   const roles = await userRepository.getRolesByUserId(usuarioId);
@@ -113,9 +145,15 @@ async function changePassword(usuarioId, currentPassword, newPassword) {
   const ok = await verifyPassword(currentPassword, user.password_hash);
   if (!ok) throw new UnauthorizedError('La contraseña actual es incorrecta');
 
-  await userRepository.updatePasswordHash(usuarioId, await hashPassword(newPassword));
-  // Cierra todas las sesiones abiertas por seguridad.
-  await refreshTokenRepository.revokeAllForUser(usuarioId);
+  const passwordHash = await hashPassword(newPassword);
+
+  // Atómico: si la revocación fallara por separado, la contraseña quedaría
+  // cambiada pero las sesiones anteriores seguirían siendo válidas.
+  await withTransaction(async () => {
+    await userRepository.updatePasswordHash(usuarioId, passwordHash);
+    // Cierra todas las sesiones abiertas por seguridad.
+    await refreshTokenRepository.revokeAllForUser(usuarioId);
+  });
 }
 
 async function forgotPassword(email) {
@@ -130,13 +168,20 @@ async function forgotPassword(email) {
     return;
   }
 
-  await passwordResetRepository.invalidateForUser(user.id);
   const rawToken = generateToken();
-  await passwordResetRepository.create({
-    usuarioId: user.id,
-    tokenHash: hashToken(rawToken),
-    expiraAt: expiresInMinutes(env.auth.passwordResetTtlMin),
+
+  // Invalidar los tokens previos y emitir el nuevo deben ocurrir juntos: si solo
+  // se invalidara, el usuario se quedaría sin token válido y sin correo.
+  await withTransaction(async () => {
+    await passwordResetRepository.invalidateForUser(user.id);
+    await passwordResetRepository.create({
+      usuarioId: user.id,
+      tokenHash: hashToken(rawToken),
+      expiraAt: expiresInMinutes(env.auth.passwordResetTtlMin),
+    });
   });
+
+  // Fuera de la transacción: es una operación de red.
   await mailer.sendPasswordResetEmail(user.email, rawToken);
 }
 
@@ -144,17 +189,27 @@ async function resetPassword(rawToken, newPassword) {
   const record = await passwordResetRepository.findValidByHash(hashToken(rawToken));
   if (!record) throw new BadRequestError('Token inválido o expirado');
 
-  await passwordResetRepository.markUsed(record.id);
-  await userRepository.updatePasswordHash(record.usuario_id, await hashPassword(newPassword));
-  await refreshTokenRepository.revokeAllForUser(record.usuario_id);
+  const passwordHash = await hashPassword(newPassword);
+
+  // Atómico: consumir el token sin llegar a cambiar la contraseña obligaría a
+  // solicitar la recuperación de nuevo.
+  await withTransaction(async () => {
+    await passwordResetRepository.markUsed(record.id);
+    await userRepository.updatePasswordHash(record.usuario_id, passwordHash);
+    await refreshTokenRepository.revokeAllForUser(record.usuario_id);
+  });
 }
 
 async function verifyEmail(rawToken) {
   const record = await emailVerificationRepository.findValidByHash(hashToken(rawToken));
   if (!record) throw new BadRequestError('Token inválido o expirado');
 
-  await emailVerificationRepository.markUsed(record.id);
-  await userRepository.markEmailVerified(record.usuario_id);
+  // Atómico: consumir el token sin marcar el correo como verificado dejaría la
+  // cuenta sin verificar y sin token con el que reintentarlo.
+  await withTransaction(async () => {
+    await emailVerificationRepository.markUsed(record.id);
+    await userRepository.markEmailVerified(record.usuario_id);
+  });
 }
 
 async function resendVerification(email) {
