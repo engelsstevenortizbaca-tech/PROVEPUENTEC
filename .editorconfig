@@ -1,0 +1,16 @@
+# EditorConfig — https://editorconfig.org
+# Unifica el estilo de edición entre distintos editores e IDEs.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown: se preservan los espacios finales (saltos de línea con dos espacios).
+[*.md]
+trim_trailing_whitespace = false
