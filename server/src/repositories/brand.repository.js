@@ -1,6 +1,7 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
+const { limitOffset, buildSet } = require('../database/sql');
 
 const COLUMNS = `id, nombre, slug, logo_url, activo, created_at, updated_at`;
 
@@ -23,21 +24,16 @@ const brandRepository = {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // LIMIT/OFFSET se interpolan como enteros ya saneados (los placeholders
-    // preparados de mysql2 no admiten LIMIT/OFFSET de forma fiable).
-    const safeLimit = Math.trunc(Number(limit)) || 0;
-    const safeOffset = Math.max(Math.trunc(Number(offset)) || 0, 0);
-
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM marcas
          ${whereSql}
         ORDER BY nombre ASC
-        LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+        ${limitOffset({ limit, offset })}`,
       params
     );
 
-    const [countRows] = await pool.execute(
+    const [countRows] = await executor().execute(
       `SELECT COUNT(*) AS total FROM marcas ${whereSql}`,
       params
     );
@@ -46,7 +42,7 @@ const brandRepository = {
   },
 
   async findById(id) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM marcas
         WHERE id = :id
@@ -57,7 +53,7 @@ const brandRepository = {
   },
 
   async findBySlug(slug) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM marcas
         WHERE slug = :slug
@@ -69,7 +65,7 @@ const brandRepository = {
 
   // Comprueba si el slug ya existe. Permite excluir un id (útil al actualizar).
   async existsBySlug(slug, { excludeId = null } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT 1
          FROM marcas
         WHERE slug = :slug
@@ -84,7 +80,7 @@ const brandRepository = {
   // negocio (la tabla solo declara UNIQUE en `slug`). La comparación es
   // insensible a mayúsculas y acentos por la collation utf8mb4_unicode_ci.
   async existsByNombre(nombre, { excludeId = null } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT 1
          FROM marcas
         WHERE nombre = :nombre
@@ -96,7 +92,7 @@ const brandRepository = {
   },
 
   async create({ nombre, slug, logoUrl = null, activo = true }) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `INSERT INTO marcas (nombre, slug, logo_url, activo)
        VALUES (:nombre, :slug, :logoUrl, :activo)`,
       { nombre, slug, logoUrl, activo: activo ? 1 : 0 }
@@ -106,26 +102,23 @@ const brandRepository = {
 
   // Actualización parcial: solo aplica los campos presentes en `fields`.
   async update(id, fields) {
-    const allowed = ['nombre', 'slug', 'logo_url', 'activo'];
-    const sets = [];
-    const params = { id };
+    const set = buildSet({
+      allowed: ['nombre', 'slug', 'logo_url', 'activo'],
+      fields,
+      booleanColumns: ['activo'],
+    });
+    if (!set) return; // nada que actualizar
 
-    for (const key of allowed) {
-      if (fields[key] !== undefined) {
-        sets.push(`${key} = :${key}`);
-        params[key] = key === 'activo' ? (fields[key] ? 1 : 0) : fields[key];
-      }
-    }
-
-    if (sets.length === 0) return; // nada que actualizar
-
-    await pool.execute(`UPDATE marcas SET ${sets.join(', ')} WHERE id = :id`, params);
+    await executor().execute(`UPDATE marcas SET ${set.sql} WHERE id = :id`, {
+      ...set.params,
+      id,
+    });
   },
 
   // Borrado definitivo: la tabla no tiene soft delete. Los productos de la
   // marca sobreviven con `marca_id = NULL` (FK ON DELETE SET NULL).
   async remove(id) {
-    const [result] = await pool.execute(`DELETE FROM marcas WHERE id = :id`, { id });
+    const [result] = await executor().execute(`DELETE FROM marcas WHERE id = :id`, { id });
     return result.affectedRows > 0;
   },
 };

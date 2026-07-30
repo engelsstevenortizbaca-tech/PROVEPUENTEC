@@ -1,6 +1,7 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
+const { limitOffset, buildSet } = require('../database/sql');
 
 // Las subcategorías NO tienen soft delete (se borran de forma definitiva), pero
 // su categoría padre sí. Por eso todas las lecturas resuelven la categoría con
@@ -37,21 +38,16 @@ const subcategoryRepository = {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // LIMIT/OFFSET se interpolan como enteros ya saneados (los placeholders
-    // preparados de mysql2 no admiten LIMIT/OFFSET de forma fiable).
-    const safeLimit = Math.trunc(Number(limit)) || 0;
-    const safeOffset = Math.max(Math.trunc(Number(offset)) || 0, 0);
-
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
        ${FROM_SQL}
        ${whereSql}
         ORDER BY c.nombre ASC, s.nombre ASC
-        LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+        ${limitOffset({ limit, offset })}`,
       params
     );
 
-    const [countRows] = await pool.execute(
+    const [countRows] = await executor().execute(
       `SELECT COUNT(*) AS total ${FROM_SQL} ${whereSql}`,
       params
     );
@@ -60,7 +56,7 @@ const subcategoryRepository = {
   },
 
   async findById(id) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
        ${FROM_SQL}
         WHERE s.id = :id
@@ -71,7 +67,7 @@ const subcategoryRepository = {
   },
 
   async findBySlug(slug) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
        ${FROM_SQL}
         WHERE s.slug = :slug
@@ -85,7 +81,7 @@ const subcategoryRepository = {
   // UNIQUE a nivel global, incluidas las subcategorías de categorías
   // eliminadas. Permite excluir un id (útil al actualizar).
   async existsBySlug(slug, { excludeId = null } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT 1
          FROM subcategorias
         WHERE slug = :slug
@@ -97,7 +93,7 @@ const subcategoryRepository = {
   },
 
   async create({ categoriaId, nombre, slug, activo = true }) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `INSERT INTO subcategorias (categoria_id, nombre, slug, activo)
        VALUES (:categoriaId, :nombre, :slug, :activo)`,
       { categoriaId, nombre, slug, activo: activo ? 1 : 0 }
@@ -107,32 +103,29 @@ const subcategoryRepository = {
 
   // Actualización parcial: solo aplica los campos presentes en `fields`.
   async update(id, fields) {
-    const allowed = ['categoria_id', 'nombre', 'slug', 'activo'];
-    const sets = [];
-    const params = { id };
+    const set = buildSet({
+      allowed: ['categoria_id', 'nombre', 'slug', 'activo'],
+      fields,
+      booleanColumns: ['activo'],
+    });
+    if (!set) return; // nada que actualizar
 
-    for (const key of allowed) {
-      if (fields[key] !== undefined) {
-        sets.push(`${key} = :${key}`);
-        params[key] = key === 'activo' ? (fields[key] ? 1 : 0) : fields[key];
-      }
-    }
-
-    if (sets.length === 0) return; // nada que actualizar
-
-    await pool.execute(`UPDATE subcategorias SET ${sets.join(', ')} WHERE id = :id`, params);
+    await executor().execute(`UPDATE subcategorias SET ${set.sql} WHERE id = :id`, {
+      ...set.params,
+      id,
+    });
   },
 
   // Borrado definitivo: la tabla no tiene soft delete.
   async remove(id) {
-    const [result] = await pool.execute(`DELETE FROM subcategorias WHERE id = :id`, { id });
+    const [result] = await executor().execute(`DELETE FROM subcategorias WHERE id = :id`, { id });
     return result.affectedRows > 0;
   },
 
   // Productos que dependen de la subcategoría. Cuenta también los eliminados
   // por soft delete, porque la FK (ON DELETE RESTRICT) sigue vigente para ellos.
   async countProductos(id) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT COUNT(*) AS total FROM productos WHERE subcategoria_id = :id`,
       { id }
     );

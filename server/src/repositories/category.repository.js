@@ -1,6 +1,7 @@
 'use strict';
 
-const { pool } = require('../database/pool');
+const { executor } = require('../database/transaction');
+const { limitOffset, buildSet } = require('../database/sql');
 
 const COLUMNS = `id, nombre, slug, descripcion, activo, created_at, updated_at, deleted_at`;
 
@@ -25,21 +26,16 @@ const categoryRepository = {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // LIMIT/OFFSET se interpolan como enteros ya saneados (los placeholders
-    // preparados de mysql2 no admiten LIMIT/OFFSET de forma fiable).
-    const safeLimit = Math.trunc(Number(limit)) || 0;
-    const safeOffset = Math.max(Math.trunc(Number(offset)) || 0, 0);
-
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM categorias
          ${whereSql}
         ORDER BY nombre ASC
-        LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+        ${limitOffset({ limit, offset })}`,
       params
     );
 
-    const [countRows] = await pool.execute(
+    const [countRows] = await executor().execute(
       `SELECT COUNT(*) AS total FROM categorias ${whereSql}`,
       params
     );
@@ -48,7 +44,7 @@ const categoryRepository = {
   },
 
   async findById(id, { includeDeleted = false } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM categorias
         WHERE id = :id
@@ -60,7 +56,7 @@ const categoryRepository = {
   },
 
   async findBySlug(slug, { includeDeleted = false } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT ${COLUMNS}
          FROM categorias
         WHERE slug = :slug
@@ -74,7 +70,7 @@ const categoryRepository = {
   // Comprueba si el slug ya existe (incluye las eliminadas, porque `slug` es
   // UNIQUE en la BD). Permite excluir un id (útil al actualizar).
   async existsBySlug(slug, { excludeId = null } = {}) {
-    const [rows] = await pool.execute(
+    const [rows] = await executor().execute(
       `SELECT 1
          FROM categorias
         WHERE slug = :slug
@@ -86,7 +82,7 @@ const categoryRepository = {
   },
 
   async create({ nombre, slug, descripcion = null, activo = true }) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `INSERT INTO categorias (nombre, slug, descripcion, activo)
        VALUES (:nombre, :slug, :descripcion, :activo)`,
       { nombre, slug, descripcion, activo: activo ? 1 : 0 }
@@ -96,24 +92,21 @@ const categoryRepository = {
 
   // Actualización parcial: solo aplica los campos presentes en `fields`.
   async update(id, fields) {
-    const allowed = ['nombre', 'slug', 'descripcion', 'activo'];
-    const sets = [];
-    const params = { id };
+    const set = buildSet({
+      allowed: ['nombre', 'slug', 'descripcion', 'activo'],
+      fields,
+      booleanColumns: ['activo'],
+    });
+    if (!set) return; // nada que actualizar
 
-    for (const key of allowed) {
-      if (fields[key] !== undefined) {
-        sets.push(`${key} = :${key}`);
-        params[key] = key === 'activo' ? (fields[key] ? 1 : 0) : fields[key];
-      }
-    }
-
-    if (sets.length === 0) return; // nada que actualizar
-
-    await pool.execute(`UPDATE categorias SET ${sets.join(', ')} WHERE id = :id`, params);
+    await executor().execute(`UPDATE categorias SET ${set.sql} WHERE id = :id`, {
+      ...set.params,
+      id,
+    });
   },
 
   async softDelete(id) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `UPDATE categorias
           SET deleted_at = CURRENT_TIMESTAMP
         WHERE id = :id AND deleted_at IS NULL`,
@@ -123,7 +116,7 @@ const categoryRepository = {
   },
 
   async restore(id) {
-    const [result] = await pool.execute(
+    const [result] = await executor().execute(
       `UPDATE categorias
           SET deleted_at = NULL
         WHERE id = :id AND deleted_at IS NOT NULL`,
