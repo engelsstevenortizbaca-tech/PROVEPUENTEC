@@ -43,6 +43,9 @@ async function issueTokens(user, roles, context = {}) {
     accessToken,
     refreshToken,
     accessTokenExpiresIn: env.auth.accessExpiresIn,
+    // Expiración real del refresh token. El controlador la usa para fijar la
+    // caducidad de la cookie httpOnly.
+    refreshTokenExpiresAt: expiraAt,
   };
 }
 

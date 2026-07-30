@@ -18,8 +18,14 @@ const refreshCookieOptions = () => ({
   path: `${env.apiPrefix}/auth`,
 });
 
-const setRefreshCookie = (res, token) =>
-  res.cookie(env.auth.refreshCookieName, token, refreshCookieOptions());
+// La cookie caduca con el propio token. Sin `expires` sería una cookie de
+// sesión: se perdería al cerrar el navegador aunque el refresh token siguiera
+// siendo válido, obligando a iniciar sesión de nuevo.
+const setRefreshCookie = (res, { refreshToken, refreshTokenExpiresAt }) =>
+  res.cookie(env.auth.refreshCookieName, refreshToken, {
+    ...refreshCookieOptions(),
+    ...(refreshTokenExpiresAt && { expires: new Date(refreshTokenExpiresAt) }),
+  });
 
 const clearRefreshCookie = (res) =>
   res.clearCookie(env.auth.refreshCookieName, refreshCookieOptions());
@@ -31,19 +37,19 @@ const readRefreshToken = (req) =>
 
 const register = async (req, res) => {
   const { user, tokens } = await authService.register(req.body, getContext(req));
-  setRefreshCookie(res, tokens.refreshToken);
+  setRefreshCookie(res, tokens);
   res.status(httpStatus.CREATED).json({ user, ...tokens });
 };
 
 const login = async (req, res) => {
   const { user, tokens } = await authService.login(req.body, getContext(req));
-  setRefreshCookie(res, tokens.refreshToken);
+  setRefreshCookie(res, tokens);
   res.status(httpStatus.OK).json({ user, ...tokens });
 };
 
 const refresh = async (req, res) => {
   const { user, tokens } = await authService.refresh(readRefreshToken(req), getContext(req));
-  setRefreshCookie(res, tokens.refreshToken);
+  setRefreshCookie(res, tokens);
   res.status(httpStatus.OK).json({ user, ...tokens });
 };
 
