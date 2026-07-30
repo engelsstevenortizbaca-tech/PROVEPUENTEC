@@ -68,6 +68,22 @@ const env = {
     refreshCookieName: process.env.REFRESH_COOKIE_NAME || 'refresh_token',
   },
 
+  // Política de subida de archivos (decisión E del plan de implementación).
+  upload: {
+    dir: process.env.UPLOAD_DIR
+      ? path.resolve(process.env.UPLOAD_DIR)
+      : path.resolve(__dirname, '../../uploads'),
+    // Ruta pública desde la que se sirven los archivos subidos.
+    publicPath: process.env.UPLOAD_PUBLIC_PATH || '/uploads',
+    maxSizeBytes: toInt(process.env.UPLOAD_MAX_SIZE_MB, 5) * 1024 * 1024,
+    maxFiles: toInt(process.env.UPLOAD_MAX_FILES, 8),
+    allowedMimeTypes: toList(process.env.UPLOAD_ALLOWED_MIME_TYPES, [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]),
+  },
+
   logLevel: (process.env.LOG_LEVEL || 'info').toLowerCase(),
 };
 

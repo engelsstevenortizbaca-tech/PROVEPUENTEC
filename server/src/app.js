@@ -41,6 +41,9 @@ app.use(
   })
 );
 
+// --- Archivos subidos (servidos como estáticos) ---
+app.use(env.upload.publicPath, express.static(env.upload.dir, { index: false, fallthrough: true }));
+
 // --- Rutas ---
 app.use('/health', healthRoutes);
 app.use(env.apiPrefix, apiRoutes);

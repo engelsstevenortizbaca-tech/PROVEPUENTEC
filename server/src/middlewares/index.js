@@ -6,5 +6,7 @@ module.exports = {
   errorHandler: require('./errorHandler'),
   authenticate: require('./authenticate'),
   authorize: require('./authorize'),
+  ownership: require('./ownership'),
+  upload: require('./upload'),
   validate: require('./validate'),
 };
