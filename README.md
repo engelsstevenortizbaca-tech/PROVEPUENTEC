@@ -1,12 +1,12 @@
-# 🛒 Marketplace
+#  PROVEPUENTEC
 
-Aplicación **Marketplace** full-stack que permite a los usuarios publicar,
+Aplicación **PROVEPUENTEC** full-stack que permite a los usuarios publicar,
 explorar y comprar productos. Desarrollada con **React**, **Node.js**, **MySQL**
 y empaquetada para móvil con **Capacitor**.
 
 ---
 
-## 🚀 Stack tecnológico
+## Stack tecnológico
 
 | Capa            | Tecnología                          |
 | --------------- | ----------------------------------- |
@@ -18,7 +18,7 @@ y empaquetada para móvil con **Capacitor**.
 
 ---
 
-## 📁 Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 Marketplace/
@@ -55,7 +55,7 @@ Marketplace/
 
 ---
 
-## 🌿 Flujo de ramas (Git)
+##  Flujo de ramas (Git)
 
 - **main** → rama estable / producción.
 - **develop** → rama de integración de nuevas funcionalidades.
@@ -63,9 +63,9 @@ Marketplace/
 
 ---
 
-## 🛠️ Puesta en marcha
+##  Puesta en marcha
 
-> ⚠️ El proyecto se encuentra en su fase inicial (estructura base).
+>  El proyecto se encuentra en su fase inicial (estructura base).
 > Las dependencias y funcionalidades se irán agregando progresivamente.
 
 ```bash
@@ -82,7 +82,7 @@ Instrucciones detalladas de instalación y ejecución se documentarán en
 
 ---
 
-## ✅ Calidad de código (tooling)
+##  Calidad de código (tooling)
 
 El repositorio incluye un conjunto de herramientas de calidad ya configuradas.
 
