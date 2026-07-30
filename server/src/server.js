@@ -6,6 +6,10 @@ const logger = require('./utils/logger');
 const { pool, verifyConnection } = require('./database/pool');
 
 async function start() {
+  // Configuración de producción: si es inválida se aborta el arranque. Es
+  // preferible a servir peticiones con secretos de desarrollo.
+  env.assertProductionConfig();
+
   // Verifica la conexión a MySQL, pero no bloquea el arranque si la BD
   // todavía no está disponible (útil en desarrollo).
   try {
@@ -36,4 +40,9 @@ async function start() {
   ['SIGINT', 'SIGTERM'].forEach((signal) => process.on(signal, () => shutdown(signal)));
 }
 
-start();
+// Un fallo al arrancar (p. ej. configuración de producción inválida) debe
+// terminar el proceso con código de error, no dejarlo a medias.
+start().catch((error) => {
+  logger.error(`No se pudo iniciar el servidor: ${error.message}`);
+  process.exit(1);
+});

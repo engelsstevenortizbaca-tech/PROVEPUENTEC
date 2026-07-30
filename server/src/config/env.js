@@ -27,6 +27,13 @@ const toBool = (value, fallback = false) => {
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 
+// Secretos de desarrollo: sirven para arrancar sin configurar nada, pero están
+// publicados en `.env.example` y en el historial de Git. `assertProductionConfig`
+// impide que lleguen a producción.
+const DEV_ACCESS_SECRET = 'dev-access-secret-change-me';
+const DEV_REFRESH_SECRET = 'dev-refresh-secret-change-me';
+const MIN_SECRET_LENGTH = 32;
+
 const env = {
   nodeEnv,
   isProduction: nodeEnv === 'production',
@@ -34,6 +41,10 @@ const env = {
   port: toInt(process.env.PORT, 3000),
   apiPrefix: process.env.API_PREFIX || '/api',
   appUrl: process.env.APP_URL || 'http://localhost:3000',
+  // Solo debe activarse si hay un proxy inverso de confianza delante. Con esto
+  // activado sin proxy, cualquier cliente puede falsear su IP mediante
+  // `X-Forwarded-For` y saltarse el rate limiting.
+  trustProxy: toInt(process.env.TRUST_PROXY, 0),
 
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
@@ -51,13 +62,17 @@ const env = {
   rateLimit: {
     windowMs: toInt(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
     max: toInt(process.env.RATE_LIMIT_MAX, 100),
+    // Límite específico de los endpoints de autenticación (más estricto).
+    authWindowMs: toInt(process.env.RATE_LIMIT_AUTH_WINDOW_MS, 15 * 60 * 1000),
+    authMax: toInt(process.env.RATE_LIMIT_AUTH_MAX, 10),
   },
 
   auth: {
     bcryptRounds: toInt(process.env.BCRYPT_ROUNDS, 12),
-    // Secretos de firma de JWT. En producción DEBEN definirse por entorno.
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-me',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-me',
+    // Secretos de firma de JWT. En producción DEBEN definirse por entorno:
+    // `assertProductionConfig` aborta el arranque si no es así.
+    accessSecret: process.env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
+    refreshSecret: process.env.JWT_REFRESH_SECRET || DEV_REFRESH_SECRET,
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     // Vida (en minutos) de los tokens de un solo uso enviados por correo.
@@ -86,5 +101,44 @@ const env = {
 
   logLevel: (process.env.LOG_LEVEL || 'info').toLowerCase(),
 };
+
+// Comprobaciones que solo tienen sentido en producción. Se ejecutan al arrancar
+// (server.js): es preferible no arrancar a arrancar con una configuración
+// insegura de forma silenciosa.
+function assertProductionConfig() {
+  if (!env.isProduction) return;
+
+  const problems = [];
+  const { accessSecret, refreshSecret } = env.auth;
+
+  if (accessSecret === DEV_ACCESS_SECRET) {
+    problems.push('JWT_ACCESS_SECRET conserva el valor de desarrollo');
+  }
+  if (refreshSecret === DEV_REFRESH_SECRET) {
+    problems.push('JWT_REFRESH_SECRET conserva el valor de desarrollo');
+  }
+  if (accessSecret.length < MIN_SECRET_LENGTH) {
+    problems.push(`JWT_ACCESS_SECRET debe tener al menos ${MIN_SECRET_LENGTH} caracteres`);
+  }
+  if (refreshSecret.length < MIN_SECRET_LENGTH) {
+    problems.push(`JWT_REFRESH_SECRET debe tener al menos ${MIN_SECRET_LENGTH} caracteres`);
+  }
+  // Un mismo secreto para ambos permitiría usar un refresh token como access token.
+  if (accessSecret === refreshSecret) {
+    problems.push('JWT_ACCESS_SECRET y JWT_REFRESH_SECRET deben ser distintos');
+  }
+  // `credentials: true` con origen comodín expone la API a cualquier sitio.
+  if (env.cors.origins.includes('*')) {
+    problems.push('CORS_ORIGINS no puede ser "*": indica los orígenes permitidos');
+  }
+
+  if (problems.length > 0) {
+    throw new Error(
+      `Configuración de producción inválida:\n${problems.map((p) => `  - ${p}`).join('\n')}`
+    );
+  }
+}
+
+env.assertProductionConfig = assertProductionConfig;
 
 module.exports = env;
