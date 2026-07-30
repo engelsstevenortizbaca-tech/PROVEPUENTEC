@@ -52,7 +52,9 @@ const createValidator = [
     .isLength({ max: 120 })
     .withMessage('El nombre no puede superar 120 caracteres'),
   optionalSlugRule,
-  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
+  // .toBoolean() convierte la cadena a booleano real: sin ella, un cuerpo
+  // urlencoded con activo=false llegaría como "false", que es truthy.
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano').toBoolean(),
 ];
 
 const updateValidator = [
@@ -68,7 +70,9 @@ const updateValidator = [
     .withMessage('El nombre no puede estar vacío')
     .isLength({ max: 120 }),
   optionalSlugRule,
-  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
+  // .toBoolean() convierte la cadena a booleano real: sin ella, un cuerpo
+  // urlencoded con activo=false llegaría como "false", que es truthy.
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano').toBoolean(),
   // Al menos un campo debe venir en el cuerpo.
   body().custom((value) => {
     const keys = ['categoriaId', 'nombre', 'slug', 'activo'];

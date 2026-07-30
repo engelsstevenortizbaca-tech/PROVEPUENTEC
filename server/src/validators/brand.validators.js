@@ -55,7 +55,9 @@ const createValidator = [
     .withMessage('El nombre no puede superar 120 caracteres'),
   optionalSlugRule,
   logoUrlRule(body('logoUrl').optional({ values: 'falsy' })),
-  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
+  // .toBoolean() convierte la cadena a booleano real: sin ella, un cuerpo
+  // urlencoded con activo=false llegaría como "false", que es truthy.
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano').toBoolean(),
 ];
 
 const updateValidator = [
@@ -68,7 +70,9 @@ const updateValidator = [
   optionalSlugRule,
   // `null` es válido: deja la marca sin logo.
   logoUrlRule(body('logoUrl').optional({ nullable: true, values: 'falsy' })),
-  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
+  // .toBoolean() convierte la cadena a booleano real: sin ella, un cuerpo
+  // urlencoded con activo=false llegaría como "false", que es truthy.
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano').toBoolean(),
   // Al menos un campo debe venir en el cuerpo.
   body().custom((value) => {
     const keys = ['nombre', 'slug', 'logoUrl', 'activo'];
