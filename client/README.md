@@ -1,6 +1,6 @@
 # Client — Frontend (React + Vite)
 
-Aplicación web del Marketplace construida con **React** y **Vite**.
+Aplicación web de UCC Market construida con **React** y **Vite**.
 
 ## Estructura
 
