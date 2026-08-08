@@ -10,7 +10,7 @@ productos, **negocian el precio y el envío**, generan pedidos y siguen su entre
 
 ---
 
-## 🚀 Stack tecnológico
+## Stack tecnológico
 
 | Capa                     | Tecnología                                       |
 | ------------------------ | ------------------------------------------------ |
@@ -24,7 +24,7 @@ productos, **negocian el precio y el envío**, generan pedidos y siguen su entre
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
 PROVEPUENTEC/
@@ -72,7 +72,7 @@ Routes**. Los detalles y las razones están en
 
 ---
 
-## 🛠️ Puesta en marcha
+## Puesta en marcha
 
 ### Requisitos
 
@@ -91,13 +91,9 @@ npm install
 
 ### 2 · Crear la base de datos
 
-> ⚠️ **El esquema completo no está en esta rama.** `database/` contiene aquí solo
-> `migrations/008_auth.sql` (tablas de tokens). Las migraciones `001`–`007`, los
-> índices, las vistas, los procedimientos y los seeds están en `origin/develop`.
-> Hasta que exista la rama de integración, la puesta en marcha de la BD requiere
-> combinar ambas. Ver `docs/ROADMAP.md` → *Prerrequisitos técnicos*.
-
-Con la rama de integración (esquema completo disponible), desde `database/`:
+Desde `database/`. `schema.sql` encadena las migraciones `001`–`007` junto con los
+índices, las vistas, los procedimientos y los triggers; `008_auth.sql` se aplica
+aparte porque no está incluido en él:
 
 ```bash
 cd database
@@ -107,7 +103,8 @@ mysql -u root -p marketplace < migrations/008_auth.sql   # tablas de tokens de a
 ```
 
 El seed de catálogos es **obligatorio**: sin la tabla `roles` poblada, el registro
-de usuarios crea cuentas sin rol.
+de usuarios crea cuentas sin rol. `seeds/002_demo.sql` es opcional y carga datos
+de ejemplo.
 
 Modelo de datos y notas de compatibilidad en
 [`docs/DATABASE_DESIGN.md`](./docs/DATABASE_DESIGN.md).
@@ -138,7 +135,7 @@ carpetas. Se documentará aquí cuando exista.
 
 ---
 
-## 🌿 Flujo de ramas (Git)
+## Flujo de ramas (Git)
 
 - **main** → rama estable / producción.
 - **develop** → rama de integración de nuevas funcionalidades.
@@ -146,7 +143,7 @@ carpetas. Se documentará aquí cuando exista.
 
 ---
 
-## ✅ Calidad de código (tooling)
+## Calidad de código (tooling)
 
 El repositorio incluye un conjunto de herramientas de calidad ya configuradas.
 
@@ -192,7 +189,7 @@ chore: actualizar dependencias
 
 ---
 
-## 📚 Documentación
+## Documentación
 
 | Documento                                                       | Contenido                                       |
 | --------------------------------------------------------------- | ----------------------------------------------- |
@@ -207,6 +204,6 @@ chore: actualizar dependencias
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto se distribuye bajo los términos que defina el autor.
