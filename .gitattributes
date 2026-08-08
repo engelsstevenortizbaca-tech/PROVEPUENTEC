@@ -1,0 +1,23 @@
+# Normalización de finales de línea.
+#
+# Git detecta los archivos de texto y los guarda siempre con LF en el
+# repositorio. `eol=lf` fuerza además LF en la copia de trabajo, también en
+# Windows: sin esto, `core.autocrlf=true` entrega CRLF al hacer checkout y
+# `prettier --check` (endOfLine: "lf") marca como mal formateados archivos que
+# en el repositorio ya están correctos.
+* text=auto eol=lf
+
+# Imágenes y fuentes: binarios, nunca convertir ni intentar diferenciar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
