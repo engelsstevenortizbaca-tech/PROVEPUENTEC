@@ -61,6 +61,11 @@ export default [
       sourceType: 'module',
       globals: { ...globals.node },
     },
+    rules: {
+      // Alineado con server/eslint.config.js: los parámetros obligatorios por
+      // aridad (p. ej. el _next del manejador de errores de Express) se ignoran.
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
 
   // Debe ir al final: desactiva las reglas de ESLint que chocan con Prettier.
