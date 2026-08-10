@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 
 const ownership = require('../src/middlewares/ownership');
+const { ROLES } = require('../src/constants/roles');
 const { ForbiddenError, NotFoundError, UnauthorizedError } = require('../src/errors');
 
 // Ejecuta el middleware y devuelve { req, error }: `error` es lo que recibió
@@ -102,4 +103,55 @@ test('propaga el error del cargador al manejador global', async () => {
   const { error } = await run(middleware, withUser(7));
 
   assert.match(error.message, /fallo del repositorio/);
+});
+
+// --- allowRoles -------------------------------------------------------------
+// Es lo que permite que `DELETE /products/:id` lo ejecute el dueño **o** un
+// administrador, sin abrir el resto de la edición a los roles.
+
+const retirarPublicacion = () =>
+  ownership(async () => ({ id: 3, vendedor_id: 7 }), {
+    owners: ['vendedor_id'],
+    allowRoles: [ROLES.ADMIN],
+    as: 'product',
+  });
+
+test('allowRoles deja pasar al administrador que no es dueño', async () => {
+  const { error, passed } = await run(
+    retirarPublicacion(),
+    withUser(99, { user: { id: 99, roles: [ROLES.ADMIN] } })
+  );
+
+  assert.strictEqual(error, null);
+  assert.strictEqual(passed, true);
+});
+
+test('allowRoles no impide que el dueño siga pasando por propiedad', async () => {
+  const { passed } = await run(retirarPublicacion(), withUser(7));
+
+  assert.strictEqual(passed, true);
+});
+
+test('allowRoles sigue rechazando a un tercero con otro rol', async () => {
+  const { error } = await run(
+    retirarPublicacion(),
+    withUser(99, { user: { id: 99, roles: [ROLES.COMPRADOR] } })
+  );
+
+  assert.ok(error instanceof ForbiddenError);
+});
+
+test('sin allowRoles, ser administrador no basta: manda la propiedad', async () => {
+  const middleware = ownership(async () => ({ id: 3, vendedor_id: 7 }), {
+    owners: ['vendedor_id'],
+  });
+  const { error } = await run(middleware, withUser(99, { user: { id: 99, roles: [ROLES.ADMIN] } }));
+
+  assert.ok(error instanceof ForbiddenError);
+});
+
+test('un req.user sin roles no rompe la comprobación por rol', async () => {
+  const { error } = await run(retirarPublicacion(), { user: { id: 99 } });
+
+  assert.ok(error instanceof ForbiddenError);
 });
