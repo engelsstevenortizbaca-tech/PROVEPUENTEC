@@ -39,6 +39,16 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # ---------------------------------------------
+# Archivos subidos por usuarios
+# ---------------------------------------------
+# Almacenamiento local de las imágenes de producto (decisión E). El contenido
+# es dato de ejecución, no código: no debe versionarse. Se ignora el contenido
+# del directorio, no el directorio, para que `.gitkeep` lo conserve en el
+# repositorio y la aplicación encuentre la ruta al arrancar.
+server/uploads/*
+!server/uploads/.gitkeep
+
+# ---------------------------------------------
 # Cachés y temporales
 # ---------------------------------------------
 .cache/

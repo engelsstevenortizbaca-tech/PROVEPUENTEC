@@ -3,16 +3,18 @@
 API REST de UCC Market construida con **Node.js**, **Express** y **MySQL**,
 siguiendo una **arquitectura por capas**.
 
-> Estado: **Fase 5 — marcas**. Disponible el sistema completo de auth
+> Estado: **Fase 6 — productos**. Disponible el sistema completo de auth
 > (registro, login, JWT access/refresh, logout, cambio y recuperación de
 > contraseña, verificación de correo, RBAC; ver
-> [`src/docs/auth.md`](./src/docs/auth.md)) y el **catálogo base**: CRUD de
+> [`src/docs/auth.md`](./src/docs/auth.md)), el **catálogo base**: CRUD de
 > **categorías** con soft delete
 > (ver [`src/docs/categories.md`](./src/docs/categories.md)), de
 > **subcategorías** (ver
 > [`src/docs/subcategories.md`](./src/docs/subcategories.md)) y de **marcas**
-> (ver [`src/docs/brands.md`](./src/docs/brands.md)), todos con RBAC.
-> Aún no hay más recursos de negocio (productos, pedidos).
+> (ver [`src/docs/brands.md`](./src/docs/brands.md)), todos con RBAC; y las
+> **publicaciones** con su galería de imágenes, autorizadas por propiedad
+> (ver [`src/docs/products.md`](./src/docs/products.md)).
+> Aún no hay más recursos de negocio (negociaciones, pedidos).
 
 ## Estructura
 
@@ -126,3 +128,8 @@ completo en [`src/docs/subcategories.md`](./src/docs/subcategories.md).
 Marcas bajo `${API_PREFIX}/brands` (catálogo de fabricantes; listado público
 con filtros y paginación, gestión solo para `admin`, nombre y slug únicos).
 Detalle completo en [`src/docs/brands.md`](./src/docs/brands.md).
+
+Productos bajo `${API_PREFIX}/products` (publicaciones y su galería de
+imágenes; catálogo público con filtros, búsqueda y ordenación, escritura
+autorizada **por propiedad** en lugar de por rol, borrado lógico). Detalle
+completo en [`src/docs/products.md`](./src/docs/products.md).

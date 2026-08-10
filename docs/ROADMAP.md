@@ -24,6 +24,8 @@ Subcategories
 
 Brands
 
+Products
+
 Fase 0 · Base técnica — **parcial**: P2 helper transaccional, P3 `ownership`,
 P4 `upload` y P5 constantes de estado. Documentación en
 `server/src/docs/base-tecnica.md`
@@ -57,6 +59,15 @@ Al cierre de la auditoría (2026-07-30): `lint` limpio, `format:check` conforme,
 **Pendiente de autorización:** índice UNIQUE en `marcas.nombre` (BD-1 del
 informe). El service ya trata la unicidad del nombre como regla de negocio, pero
 la BD no la impone, así que dos peticiones simultáneas pueden duplicarlo.
+
+Products — incluye la galería de imágenes (`producto_imagenes`). Autorización
+por propiedad, no por rol: cualquier usuario autenticado publica y solo el dueño
+edita lo suyo. Borrado lógico. La variante por defecto se crea en la misma
+transacción que el producto y no se expone por API. Documentación en
+`server/src/docs/products.md`.
+
+Al cierre de Products (2026-08-09): `lint` limpio, `format:check` conforme,
+156/156 pruebas en verde.
 
 ---
 
@@ -97,8 +108,6 @@ Migraciones `009`, `010`, `011` y seeds — requieren autorización
 ---
 
 ## Pendiente
-
-Products
 
 Notifications
 

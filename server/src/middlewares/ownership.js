@@ -14,12 +14,20 @@ const { ForbiddenError, NotFoundError, UnauthorizedError } = require('../errors'
 //
 // - `load(req)` obtiene el recurso; devolver null produce 404.
 // - `owners` son los campos del recurso que contienen ids autorizados.
+// - `allowRoles` deja pasar a quien tenga alguno de esos roles aunque no sea
+//   dueño (p. ej. el administrador que retira una publicación). Vacío por
+//   defecto: sin él, el criterio sigue siendo exclusivamente la propiedad.
 // - El recurso cargado queda en `req[as]` para que el controlador no repita
 //   la consulta.
 module.exports =
   (
     load,
-    { owners = ['usuario_id'], as = 'resource', notFoundMessage = 'Recurso no encontrado' } = {}
+    {
+      owners = ['usuario_id'],
+      allowRoles = [],
+      as = 'resource',
+      notFoundMessage = 'Recurso no encontrado',
+    } = {}
   ) =>
   async (req, _res, next) => {
     if (!req.user) return next(new UnauthorizedError('No autenticado'));
@@ -33,7 +41,10 @@ module.exports =
         .filter((id) => id !== null && id !== undefined)
         .map(Number);
 
-      if (!allowedIds.includes(Number(req.user.id))) {
+      const roles = Array.isArray(req.user.roles) ? req.user.roles : [];
+      const byRole = allowRoles.length > 0 && roles.some((role) => allowRoles.includes(role));
+
+      if (!byRole && !allowedIds.includes(Number(req.user.id))) {
         return next(new ForbiddenError('No tienes acceso a este recurso'));
       }
 
