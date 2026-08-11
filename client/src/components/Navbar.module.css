@@ -1,0 +1,179 @@
+/* La barra se mantiene blanca a propósito: el logo es un JPEG con fondo
+ * blanco, así que cualquier superficie de color dibujaría un recuadro
+ * alrededor. La separación con el contenido la da el borde inferior.
+ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+  min-height: var(--navbar-height);
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  /* `flex-shrink: 0` impide que el contenedor comprima el logo cuando el resto
+   * de la barra pide espacio: sin esto, un flex-item puede deformarse. */
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+.marca:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 4px;
+}
+
+.menu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.enlaces {
+  display: flex;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.enlace {
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: 500;
+  text-decoration: none;
+  padding-block: var(--space-2);
+  border-bottom: 2px solid transparent;
+}
+
+.enlace:hover {
+  color: var(--color-cyan);
+}
+
+.enlaceActivo {
+  color: var(--color-navy);
+  border-bottom-color: var(--color-green);
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.botonPrimario,
+.botonSecundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.botonPrimario {
+  background: var(--color-navy);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-navy);
+}
+
+.botonPrimario:hover {
+  background: var(--color-navy-dark);
+}
+
+.botonSecundario {
+  background: transparent;
+  color: var(--color-navy);
+  border: 1px solid var(--color-border);
+}
+
+.botonSecundario:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+
+/* El botón de menú solo existe en móvil. */
+.botonMenu {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-navy);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.iconoMenu,
+.iconoMenu::before,
+.iconoMenu::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentcolor;
+  content: '';
+}
+
+.iconoMenu::before {
+  transform: translateY(-6px);
+}
+
+.iconoMenu::after {
+  transform: translateY(4px);
+}
+
+/* --- Móvil ---------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .botonMenu {
+    display: inline-flex;
+  }
+
+  .menu {
+    display: none;
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .menuAbierto {
+    display: flex;
+  }
+
+  .enlaces {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .acciones {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

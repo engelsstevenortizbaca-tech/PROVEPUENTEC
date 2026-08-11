@@ -1,0 +1,64 @@
+/* Regla base: la altura manda y la anchura se calcula sola.
+ *
+ * `width: auto` sobre los atributos width/height del HTML garantiza que la
+ * imagen nunca se estire ni se aplaste. `object-fit: contain` es una segunda
+ * defensa por si un contenedor flex intentara comprimirla.
+ */
+.logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Navbar — escritorio: alto suficiente para leer el wordmark sin comerse la
+ * barra. Con 44 px de alto ocupa 80 px de ancho (20:11). */
+.navbar {
+  height: 44px;
+}
+
+/* Login y registro: sobre el formulario, como pieza de identidad principal. */
+.auth {
+  height: 96px;
+  margin-inline: auto;
+}
+
+/* Portada. */
+.hero {
+  height: 168px;
+  margin-inline: auto;
+}
+
+/* Pie: la versión más discreta. */
+.footer {
+  height: 56px;
+}
+
+/* --- Adaptación a móvil ---------------------------------------------------
+ * Solo cambia la altura; la proporción se mantiene por construcción.
+ */
+@media (max-width: 640px) {
+  .navbar {
+    height: 36px;
+  }
+
+  .auth {
+    height: 72px;
+  }
+
+  .hero {
+    height: 112px;
+  }
+
+  .footer {
+    height: 48px;
+  }
+}
+
+/* En pantallas muy estrechas el wordmark seguiría siendo legible, pero se
+ * reduce un punto más para dejar sitio al botón de menú. */
+@media (max-width: 380px) {
+  .navbar {
+    height: 32px;
+  }
+}

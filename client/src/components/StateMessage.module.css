@@ -1,0 +1,94 @@
+.bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.descripcion {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.error .titulo {
+  color: var(--color-danger);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-cyan);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* --- Esqueleto de carga ---------------------------------------------------- */
+.skeletonRejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-6);
+}
+
+.skeletonTarjeta {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.skeletonImagen {
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.skeletonLinea {
+  height: 12px;
+  margin-bottom: var(--space-2);
+  background: var(--color-bg);
+  border-radius: 999px;
+}
+
+.skeletonCorta {
+  width: 55%;
+}
+
+@media (max-width: 640px) {
+  .skeletonRejilla {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-4);
+  }
+}

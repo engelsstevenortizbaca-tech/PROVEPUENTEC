@@ -1,0 +1,177 @@
+.pagina {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.migas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.migas a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.migas a:hover {
+  color: var(--color-cyan-dark);
+  text-decoration: underline;
+}
+
+.disposicion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-12);
+  align-items: start;
+}
+
+.informacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.marca {
+  color: var(--color-cyan-dark);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.marca:hover {
+  text-decoration: underline;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.distintivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.condicion,
+.disponible,
+.noDisponible {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.condicion {
+  color: var(--color-navy);
+  background: rgb(18 58 114 / 8%);
+}
+
+.disponible {
+  color: var(--color-green-dark);
+  background: rgb(98 181 69 / 14%);
+}
+
+.noDisponible {
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.precio {
+  margin: var(--space-2) 0 0;
+  color: var(--color-navy);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.aviso {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.bloque {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.subtitulo {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.descripcion {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.sinDescripcion {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.tabla {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+}
+
+.tabla dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.tabla dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.volver {
+  display: inline-block;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-inverse);
+  background: var(--color-navy);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Tablet y móvil: la galería pasa arriba y la información debajo. */
+@media (max-width: 900px) {
+  .disposicion {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+}
+
+@media (max-width: 640px) {
+  .titulo {
+    font-size: var(--text-2xl);
+  }
+
+  .precio {
+    font-size: var(--text-3xl);
+  }
+
+  .tabla {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
+  .tabla dd {
+    margin-bottom: var(--space-2);
+  }
+}
