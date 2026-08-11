@@ -1,0 +1,63 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  color: var(--color-navy);
+}
+
+img {
+  /* Red de seguridad global: ninguna imagen del sitio puede deformarse por un
+   * contenedor demasiado estrecho. */
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--color-cyan-dark);
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+/* Enlace de salto para lectores de pantalla y teclado. */
+.saltar-al-contenido {
+  position: absolute;
+  left: -9999px;
+}
+
+.saltar-al-contenido:focus {
+  left: var(--space-4);
+  top: var(--space-2);
+  z-index: 30;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}

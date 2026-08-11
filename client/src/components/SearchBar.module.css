@@ -1,0 +1,77 @@
+.formulario {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.etiqueta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.campo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.input:focus {
+  border-color: var(--color-cyan);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(16 159 196 / 15%);
+}
+
+/* El navegador ya dibuja la «x» en input[type=search]; este botón es el
+ * equivalente accesible por teclado y lector de pantalla. */
+.limpiar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+}
+
+.limpiar:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.boton {
+  padding: var(--space-3) var(--space-6);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text-inverse);
+  background: var(--color-navy);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.boton:hover {
+  background: var(--color-navy-dark);
+}
+
+@media (max-width: 480px) {
+  .formulario {
+    flex-direction: column;
+  }
+}

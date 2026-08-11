@@ -1,0 +1,119 @@
+/* El hero se mantiene claro para alojar el logo (JPEG con fondo blanco) sin
+ * que se recorte un rectángulo sobre el color. El acento de marca lo aporta el
+ * degradado suave y la línea inferior.
+ */
+.hero {
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-bg) 100%);
+  border-bottom: 3px solid var(--color-cyan);
+}
+
+.heroContenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 760px;
+  margin-inline: auto;
+  padding: var(--space-16) var(--space-4);
+  text-align: center;
+}
+
+.heroTitulo {
+  margin: 0;
+  font-size: var(--text-3xl);
+}
+
+.heroTexto {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+}
+
+/* --- Buscador -------------------------------------------------------------- */
+/* El buscador es el componente compartido `SearchBar`; aquí solo se le da
+ * anchura dentro del hero. */
+.heroBuscador {
+  width: 100%;
+  margin-top: var(--space-4);
+}
+
+/* --- Secciones ------------------------------------------------------------- */
+.contenedor {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-4) 0;
+}
+
+.seccion {
+  margin-bottom: var(--space-12);
+}
+
+.seccionCabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.seccionCabecera h2 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.verTodo {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado {
+  color: var(--color-text-muted);
+}
+
+.categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.categoria {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-navy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.categoria:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan-dark);
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .heroContenido {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .heroTitulo {
+    font-size: var(--text-2xl);
+  }
+
+  .rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-4);
+  }
+}

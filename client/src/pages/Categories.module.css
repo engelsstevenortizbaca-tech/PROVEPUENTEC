@@ -1,0 +1,148 @@
+.pagina {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.cabecera {
+  margin-bottom: var(--space-8);
+}
+
+.titulo {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-3xl);
+}
+
+.subtitulo {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.tarjetaCabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.nombre {
+  color: var(--color-navy);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nombre:hover {
+  color: var(--color-cyan-dark);
+}
+
+.desplegar {
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-cyan-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.descripcion {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.subcategorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.subcategoria {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.subcategoria:hover {
+  color: var(--color-cyan-dark);
+}
+
+.sinSubcategorias {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.seccionMarcas {
+  margin-top: var(--space-12);
+}
+
+.tituloSeccion {
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-2xl);
+}
+
+.marcas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-navy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.marca:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan-dark);
+}
+
+.logoMarca {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

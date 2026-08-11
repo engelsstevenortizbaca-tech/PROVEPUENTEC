@@ -1,0 +1,119 @@
+.tarjeta {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.enlace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Marco de proporción fija: todas las tarjetas miden igual aunque las fotos
+ * tengan formatos distintos. `contain` evita recortar el producto. */
+.imagen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Distintivo para las publicaciones que no están activas (borrador, pausado,
+ * vendido). En el catálogo público no aparece nunca. */
+.estado {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: 2px var(--space-2);
+  color: var(--color-text-inverse);
+  background: var(--color-navy);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sinImagen {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.marca {
+  margin: 0;
+  color: var(--color-cyan-dark);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text);
+  /* Dos líneas como máximo para que la rejilla no se descuadre. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.taxonomia {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.precio {
+  margin: var(--space-2) 0 0;
+  color: var(--color-navy);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: auto 0 0;
+  padding-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.condicion {
+  padding: 2px var(--space-2);
+  color: var(--color-green-dark);
+  background: rgb(98 181 69 / 12%);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}

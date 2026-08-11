@@ -3,9 +3,10 @@
 PROVEPUENTEC es un marketplace full-stack donde compradores y vendedores publican
 productos, **negocian el precio y el envío**, generan pedidos y siguen su entrega.
 
-> **Estado:** backend en desarrollo activo. Operativos los módulos **Auth**,
-> **Categorías**, **Subcategorías** y **Marcas**. El frontend está en fase de
-> estructura (sin código de aplicación todavía).
+> **Estado:** desarrollo activo. Operativos los módulos **Auth**,
+> **Categorías**, **Subcategorías**, **Marcas** y **Productos**. El frontend
+> tiene su primera entrega: portada, catálogo, ficha de producto, categorías,
+> login y registro.
 > El avance por módulo está en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ---
@@ -130,8 +131,14 @@ servidor no arranca con los secretos JWT de desarrollo ni con `CORS_ORIGINS=*`.*
 
 ### 4 · Frontend
 
-Aún no hay aplicación React: `client/` contiene únicamente la estructura de
-carpetas. Se documentará aquí cuando exista.
+```bash
+npm run dev -w client     # http://localhost:5173
+```
+
+Vite proxifica `/api` y `/uploads` hacia `http://localhost:3000`, así que el
+servidor debe estar levantado. Las pantallas disponibles, las variables de
+entorno (`VITE_API_PROXY`, `VITE_API_PREFIX`) y la organización del código están
+en [`client/README.md`](./client/README.md).
 
 ---
 

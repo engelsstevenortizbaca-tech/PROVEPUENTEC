@@ -24,9 +24,21 @@ export default [
   // Reglas recomendadas base de JavaScript.
   js.configs.recommended,
 
+  // Archivos de configuración del cliente: se ejecutan en Node (Vite los carga
+  // antes de que exista navegador), no en el bundle del navegador.
+  {
+    files: ['client/*.config.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+  },
+
   // Cliente: React + hooks + accesibilidad (entorno navegador).
   {
     files: ['client/**/*.{js,jsx}'],
+    ignores: ['client/*.config.js'],
     plugins: {
       react,
       'react-hooks': reactHooks,

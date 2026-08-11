@@ -1,0 +1,180 @@
+.panel {
+  position: relative;
+}
+
+/* En escritorio el panel está siempre visible; el botón solo existe en
+ * pantallas estrechas, donde ocuparía demasiado espacio permanentemente. */
+.alternar {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-navy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 6px;
+  color: var(--color-text-inverse);
+  background: var(--color-cyan);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
+
+.cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.limpiar {
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-cyan-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cargando {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.etiqueta {
+  padding: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.select:focus,
+.input:focus {
+  border-color: var(--color-cyan);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(16 159 196 / 15%);
+}
+
+.select:disabled {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.rango {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+.aplicar {
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-navy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.aplicar:hover:not(:disabled) {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan-dark);
+}
+
+.aplicar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Tablet y móvil -------------------------------------------------------- */
+@media (max-width: 900px) {
+  .alternar {
+    display: flex;
+  }
+
+  .cuerpo {
+    display: none;
+    margin-top: var(--space-3);
+  }
+
+  .abierto {
+    display: flex;
+  }
+
+  .cabecera {
+    display: none;
+  }
+}

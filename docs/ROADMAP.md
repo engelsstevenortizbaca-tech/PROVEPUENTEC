@@ -69,6 +69,17 @@ transacción que el producto y no se expone por API. Documentación en
 Al cierre de Products (2026-08-09): `lint` limpio, `format:check` conforme,
 156/156 pruebas en verde.
 
+Frontend · primera entrega — React 18 + Vite 5 + React Router 6 sobre los
+módulos ya publicados por la API (Auth, Categories, Subcategories, Brands,
+Products). Incluye portada, catálogo con búsqueda, filtros y paginación en la
+URL, ficha de producto con galería, página de categorías, login y registro.
+Cliente HTTP único con renovación automática del access token, tokens de diseño
+tomados del logo oficial y CSS Modules por componente. El resto de rutas cae en
+`EnConstruccion`. Documentación en `client/README.md`.
+
+Al cierre de la primera entrega del frontend (2026-08-10): `lint` limpio,
+`format:check` conforme, 184/184 pruebas en verde y `npm run build` correcto.
+
 ---
 
 ## Incompleto
@@ -130,6 +141,10 @@ Favorites
 Reports
 
 Admin Dashboard
+
+Frontend · pantallas privadas — publicar y editar producto con su galería,
+panel del vendedor y las vistas de cada módulo pendiente. Hoy todas resuelven
+en `EnConstruccion`.
 
 ---
 
